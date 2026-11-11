@@ -1,6 +1,6 @@
 # Página da HAI OUTLET
 
-Página da loja de roupas HAI OUTLET, que fica dentro do Comper Nova CPA, em Cuiabá. Ela abre quando a cliente encosta o celular no cartão de aproximação da loja, e também funciona como site comum em [lojahaioutlet.com.br](https://lojahaioutlet.com.br/).
+Página da loja de roupas HAI OUTLET, que fica dentro do Supermercado Comper CPA, em Cuiabá. Ela abre quando a cliente encosta o celular no cartão de aproximação da loja, e também funciona como site comum em [lojahaioutlet.com.br](https://lojahaioutlet.com.br/).
 
 Eu, Rodrigo Jr, fiz esta página pela [Mil e Uma Linhas!](https://mileumalinhas.com.br).
 

@@ -13,7 +13,8 @@ Eu, Rodrigo Jr, fiz esta página pela [Mil e Uma Linhas!](https://mileumalinhas.
 - Salva o contato da loja na agenda do celular.
 - Abre o WhatsApp, o Instagram, o TikTok e a rota no mapa com um toque.
 - Mostra se a loja está aberta agora e quanto falta para abrir ou fechar.
-- Tem um catálogo de peças com busca, filtro por tipo e sorteio.
+- Tem um catálogo de peças separado em Feminino, Masculino e Fitness, com busca, filtro por tipo e sorteio.
+- Mostra todas as peças em uma vitrine que passa sozinha; tocar em uma abre essa peça no catálogo.
 - Deixa a cliente marcar as peças de que gostou e mandar a lista inteira pelo WhatsApp.
 - Aproxima a foto da peça com um toque.
 
@@ -30,6 +31,7 @@ Eu, Rodrigo Jr, fiz esta página pela [Mil e Uma Linhas!](https://mileumalinhas.
 | `contato.vcf` | O contato que vai para a agenda (nome e telefone). |
 | `qr.svg` | O código da tela "Indicar a loja", que aponta para este endereço. |
 | `fotos/` | Fotos das peças, recortadas sem mostrar o rosto de ninguém. |
+| `video/` | O vídeo de tecido que fica no fundo do catálogo, com uma imagem parada para quem pede menos movimento. |
 | `fonte/` | As duas fontes usadas (Playfair Display e Inter, licença OFL). |
 | `CNAME` | Diz ao GitHub Pages qual é o domínio da página. |
 
@@ -40,4 +42,4 @@ A página não tem cadastro, não usa cookies, não conta visitas e não guarda 
 ## Para trocar uma peça do catálogo
 
 1. Coloque a foto em `fotos/`, em WebP, na proporção 4 por 5.
-2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` masculino).
+2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` masculino). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.

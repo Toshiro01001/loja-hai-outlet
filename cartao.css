@@ -117,9 +117,14 @@ h1 { font: 500 clamp(31px, 9.4vw, 76px)/1.04 var(--serifa); letter-spacing: -.02
 .atalho:hover i { background: var(--verde); border-color: var(--verde); color: var(--obs); transform: rotate(-8deg) scale(1.06); }
 .atalho:active { transform: scale(.98); }
 
-.sobre ul { margin-top: 16px; border-top: 1px solid var(--fio); }
-.sobre li { display: grid; grid-template-columns: 34px 1fr; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--fio); font: 400 clamp(21px, 5.6vw, 30px)/1.22 var(--serifa); background: var(--areia); }
-.sobre li .num { width: 7px; height: 7px; border-radius: 50%; background: var(--verde-escuro); align-self: center; }
+/* a loja: painel escuro com a frase principal em destaque e as outras em cartões com desenho */
+.sobre-painel { position: relative; overflow: hidden; isolation: isolate; border-radius: var(--raio); background: var(--mata); color: #fff; padding: 28px 20px 20px; }
+.sobre-painel::before { content: ''; position: absolute; z-index: -1; right: -30%; top: -45%; width: 90%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, rgba(164, 207, 69, .3), transparent); pointer-events: none; }
+.sobre-frase { margin-top: 14px; font: 400 clamp(30px, 8.6vw, 46px)/1.08 var(--serifa); letter-spacing: -.01em; text-wrap: balance; }
+.sobre ul { margin-top: 26px; display: grid; gap: 10px; }
+.sobre li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; padding: 13px 14px; border-radius: 18px; background: rgba(255, 255, 255, .06); border: 1px solid var(--fio-claro); font: 500 16px/1.35 var(--texto); color: rgba(255, 255, 255, .92); }
+.sobre li i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--verde); color: var(--obs); }
+.sobre li svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .emoji { display: none; }
 
 /* vitrine que passa sozinha */
@@ -314,9 +319,10 @@ h1 { font: 500 clamp(31px, 9.4vw, 76px)/1.04 var(--serifa); letter-spacing: -.02
   .bloco { padding-top: 120px; }
   .atalhos { grid-template-columns: repeat(4, 1fr); gap: 14px; padding-top: 28px; }
   .atalho { min-height: 168px; padding: 20px; }
-  .sobre { display: grid; grid-template-columns: 1fr 3fr; align-items: start; }
-  .sobre ul { margin-top: 0; }
-  .sobre li { grid-template-columns: 56px 1fr; padding: 24px 0; font-size: 34px; }
+  .sobre-painel { padding: 56px 56px 48px; }
+  .sobre-frase { max-width: 16ch; font-size: 64px; }
+  .sobre ul { margin-top: 44px; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .sobre li { grid-template-columns: 1fr; gap: 26px; align-content: space-between; min-height: 172px; padding: 22px; border-radius: 22px; font-size: 18px; }
   .foto { width: 27cqw; }
   .dupla-mapa { grid-template-columns: 1.4fr 1fr; align-items: center; gap: 56px; }
   .mapa { aspect-ratio: 16 / 10; }
@@ -561,3 +567,54 @@ body.com-folha { overscroll-behavior-y: none; }
   .fundo.com-mural::after { background: linear-gradient(90deg, rgba(21, 25, 20, .95) 0%, rgba(21, 25, 20, .82) 42%, rgba(21, 25, 20, .5) 100%), linear-gradient(180deg, rgba(21, 25, 20, .7) 0%, rgba(21, 25, 20, 0) 30%, rgba(21, 25, 20, .9) 100%); }
 }
 @media (prefers-reduced-motion: reduce) { .mural-col { transform: translateY(-12%); } }
+
+/* ===== Vídeo de tecido no fundo do catálogo (fundoCatalogo: 'seda' em dados.js) ===== */
+.seda { position: fixed; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+#catalogo.com-seda .trama { background: radial-gradient(circle, rgba(255, 255, 255, .09) 1px, transparent 1.4px) 0 0 / 22px 22px, linear-gradient(180deg, rgba(21, 25, 20, .5) 0%, rgba(21, 25, 20, .72) 100%); }
+
+/* início sem os fios verticais ao fundo: atrás dos blocos eles pareciam uma imagem que não carregou */
+#inicio .folhas::before { display: none; }
+
+/* ---------- brisa: o fundo claro do início deixa de ser liso ----------
+   Três manchas grandes de cor (verde da marca, creme quente e verde fundo) flutuam devagar atrás dos blocos,
+   com um grão fino por cima. A camada fica presa à tela enquanto a página rola. Só "transform" é animado,
+   então o celular não redesenha nada a cada quadro. Com movimento reduzido, as manchas ficam paradas. */
+.brisa { position: sticky; top: 0; z-index: -1; height: 100vh; margin: 0 calc(50% - 50vw) -100vh; overflow: hidden; pointer-events: none; }
+.brisa i { position: absolute; border-radius: 50%; will-change: transform; }
+.brisa i:nth-child(1) { width: 92vmax; height: 92vmax; left: -34vmax; top: -30vmax; background: radial-gradient(closest-side, rgba(164, 207, 69, .42), rgba(164, 207, 69, 0)); animation: brisa-a 24s ease-in-out infinite alternate; }
+.brisa i:nth-child(2) { width: 84vmax; height: 84vmax; right: -36vmax; top: 18vh; background: radial-gradient(closest-side, rgba(255, 214, 150, .6), rgba(255, 214, 150, 0)); animation: brisa-b 30s ease-in-out infinite alternate; }
+.brisa i:nth-child(3) { width: 80vmax; height: 80vmax; left: 4vw; bottom: -46vmax; background: radial-gradient(closest-side, rgba(79, 116, 23, .3), rgba(79, 116, 23, 0)); animation: brisa-c 36s ease-in-out infinite alternate; }
+.brisa::after { content: ''; position: absolute; inset: 0; opacity: .5; mix-blend-mode: soft-light; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E"); }
+@keyframes brisa-a { to { transform: translate3d(22vmax, 16vmax, 0) scale(1.15); } }
+@keyframes brisa-b { to { transform: translate3d(-26vmax, 12vmax, 0) scale(.88); } }
+@keyframes brisa-c { to { transform: translate3d(18vmax, -20vmax, 0) scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .brisa i { animation: none; } }
+
+/* os cartões claros viram vidro fosco, para a cor do fundo aparecer através deles */
+#inicio .atalho { background: rgba(255, 255, 255, .58); border-color: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(16px) saturate(1.35); backdrop-filter: blur(16px) saturate(1.35); box-shadow: 0 10px 30px -18px rgba(28, 32, 28, .35), inset 0 1px 0 rgba(255, 255, 255, .9); }
+#inicio .atalho:hover { background: var(--obs); border-color: var(--obs); }
+#inicio .caixa { background: rgba(255, 255, 255, .38); border-color: rgba(255, 255, 255, .75); -webkit-backdrop-filter: blur(16px) saturate(1.35); backdrop-filter: blur(16px) saturate(1.35); box-shadow: 0 18px 40px -26px rgba(28, 32, 28, .4); }
+#inicio .caixa-dentro { background: linear-gradient(180deg, rgba(255, 255, 255, .86) 0%, rgba(255, 255, 255, .7) 100%); }
+#inicio .pausa { background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+
+/* catálogo sem os fios verticais ao fundo */
+#catalogo .folhas::before { display: none; }
+/* segunda fileira de filtros: os tipos dentro do grupo escolhido, um pouco menores */
+.chips.sub { margin-top: 8px; }
+.chips.sub[hidden] { display: none; }
+.chips.sub .chip { min-height: 38px; padding: 0 14px; font-size: 13.5px; }
+
+/* vitrine: cada peça abre no catálogo, então o cursor avisa que dá para clicar */
+.fila .foto { cursor: pointer; }
+.fila.passando:active .foto { cursor: grabbing; }
+
+/* vitrine em arco: sobra um respiro em cima e embaixo para as fotos das pontas poderem girar sem cortar (o giro vem do cartao.js) */
+.fila.passando { padding-top: 18px; padding-bottom: 18px; margin-top: -14px; margin-bottom: -14px; }
+.fila.passando .foto { will-change: transform; backface-visibility: hidden; }
+
+/* luz viva nos painéis escuros: o brilho verde se desloca devagar em vez de ficar parado */
+.sobre-painel::before { animation: luz-painel 16s ease-in-out infinite alternate; will-change: transform; }
+.indicar { position: relative; overflow: hidden; isolation: isolate; }
+.indicar::before { content: ''; position: absolute; z-index: -1; right: -18%; top: -160%; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, rgba(164, 207, 69, .34), transparent); pointer-events: none; animation: luz-painel 13s ease-in-out infinite alternate-reverse; will-change: transform; }
+@keyframes luz-painel { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-38%, 26%, 0) scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .sobre-painel::before, .indicar::before { animation: none; } }

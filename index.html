@@ -7,11 +7,11 @@
 <meta name="theme-color" content="#151914">
 <meta name="referrer" content="no-referrer">
 <title>HAI OUTLET</title>
-<meta name="description" content="HAI OUTLET, loja de roupas dentro do Comper Nova CPA, em Cuiabá. Contato, catálogo de peças, horário e como chegar.">
-<link rel="icon" href="logo.webp">
 <link rel="preload" href="fonte/playfair.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonte/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="cartao.css?v=43">
+<meta name="description" content="HAI OUTLET, loja de roupas dentro do Comper Nova CPA, em Cuiabá. Contato, catálogo de peças, horário e como chegar.">
+<link rel="icon" href="logo.webp">
+<link rel="stylesheet" href="cartao.css?v=50">
 </head>
 <body data-vista="inicio">
 <div class="abre" aria-hidden="true"><div class="abre-selo"><img src="logo.webp" width="92" height="92" alt=""><i></i></div></div>
@@ -31,7 +31,6 @@
 <div class="vista" id="inicio">
   <section class="heroi" id="heroi">
     <div class="fundo" id="fundo" aria-hidden="true"><canvas id="aurora"></canvas></div>
-    <div class="fios" aria-hidden="true"></div>
     <div class="pontos" aria-hidden="true"></div>
     <div class="heroi-dentro">
       <div class="heroi-texto">
@@ -65,6 +64,7 @@
   </section>
 
   <div class="folhas">
+  <div class="brisa" aria-hidden="true"><i></i><i></i><i></i></div>
   <nav class="atalhos" aria-label="Contatos da loja">
     <a class="atalho" id="b-insta" rel="noopener"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.600"/><circle cx="16.600" cy="7.400" r=".600"/></svg></i><span><b>Instagram</b><small>Abre o perfil da loja.</small></span></a>
     <a class="atalho" id="b-tiktok" rel="noopener"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.500a3.500 3.500 0 1 1-3.500-3.500M14 4c.400 2.600 2 4.200 4.500 4.500"/></svg></i><span><b>TikTok</b><small>Abre o perfil da loja.</small></span></a>
@@ -73,9 +73,11 @@
   </nav>
 
   <section class="sobre bloco" id="sobre" aria-labelledby="t-sobre">
-    <p class="rotulo">A loja</p>
-    <h2 id="t-sobre" class="so-leitor">Sobre a loja</h2>
-    <ul id="sobre-lista"></ul>
+    <div class="sobre-painel">
+      <p class="rotulo claro">A loja</p>
+      <h2 id="t-sobre" class="sobre-frase"></h2>
+      <ul id="sobre-lista"></ul>
+    </div>
   </section>
 
   <section class="pecas bloco" aria-labelledby="t-pecas">
@@ -83,7 +85,7 @@
       <div><p class="rotulo">Vitrine</p><h2 id="t-pecas">Espiar as novidades</h2></div>
       <button type="button" class="pausa" id="pausa" hidden>Pausar</button>
     </div>
-    <div class="fila" id="grade" tabindex="0" aria-label="Fotos de peças da loja. Elas passam sozinhas; arraste ou use as setas para ver no seu ritmo."></div>
+    <div class="fila" id="grade" tabindex="0" aria-label="Todas as peças do catálogo. Elas passam sozinhas; arraste ou use as setas para ver no seu ritmo. Toque em uma peça para abri-la no catálogo."></div>
     <a class="elo" href="#catalogo"><span>Ver o catálogo completo</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7l5 5-5 5" opacity=".45"/><path d="M12 7l5 5-5 5"/></svg></a>
   </section>
 
@@ -151,7 +153,8 @@
         <label class="busca"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg><span class="so-leitor">Procurar peça pelo nome</span><input id="busca" type="search" placeholder="Procurar: vestido, polo, azul" autocomplete="off" enterkeyhint="search"></label>
         <button type="button" class="acao escura" id="surpresa"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r=".800"/><circle cx="15" cy="15" r=".800"/><circle cx="15" cy="9" r=".800"/><circle cx="9" cy="15" r=".800"/></svg><b>Me surpreenda</b></button>
       </div>
-      <div class="chips" id="chips" role="group" aria-label="Filtrar peças por tipo"></div>
+      <div class="chips" id="chips" role="group" aria-label="Filtrar peças por grupo"></div>
+      <div class="chips sub" id="subchips" role="group" aria-label="Filtrar por tipo de peça" hidden></div>
       <p class="cat-conta" id="cat-conta" role="status" aria-live="polite"></p>
     </header>
     <ul class="cat-grade" id="cat-grade"></ul>
@@ -208,7 +211,7 @@
   <p class="dica">A conversa abre já com o nome desta peça.</p>
   <button type="button" class="quieto" id="p-fechar">Fechar</button>
 </section>
-<script src="dados.js?v=20"></script>
-<script src="cartao.js?v=43"></script>
+<script src="dados.js?v=17"></script>
+<script src="cartao.js?v=49"></script>
 </body>
 </html>

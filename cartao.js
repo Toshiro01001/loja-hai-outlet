@@ -65,11 +65,21 @@
   $('b-contato').setAttribute('aria-label', 'Salvar o contato da ' + nome + ' na agenda');
   $('b-indicar').setAttribute('aria-label', 'Indicar a ' + nome + ': mostra o código da página e envia o link');
 
-  /* frases da própria loja, cada uma com o seu emoji */
-  var ul = $('sobre-lista');
-  (L.sobre || []).forEach(function (par) { /* o emoji da frase fica só nos dados; a página nova usa um ponto verde */
-    var li = document.createElement('li'), e = document.createElement('span'), t = document.createElement('span');
-    e.className = 'num'; e.setAttribute('aria-hidden', 'true'); t.textContent = par[1]; li.style.setProperty('--i', ul.children.length);
+  /* frases da própria loja: a primeira vira o título do painel e as outras viram cartões com um desenho.
+     O desenho é escolhido pelo emoji que acompanha a frase nos dados; sem desenho conhecido, fica um ponto. */
+  var DESENHOS = {
+    '✨': '<path d="M12 3.500l1.900 5.100 5.100 1.900-5.100 1.900-1.900 5.100-1.900-5.100L5 10.500l5.100-1.900z"/><path d="M18.500 16v4M16.500 18h4"/>',
+    '👗': '<path d="M12 8.500V7a2 2 0 1 0-2-2"/><path d="M12 8.500l8.200 6.100a1.100 1.100 0 0 1-.7 2H4.500a1.100 1.100 0 0 1-.7-2z"/>',
+    '🔥': '<path d="M3.500 12.300V4.500h7.800l9.200 9.200-7.800 7.800z"/><circle cx="8" cy="9" r="1.300"/>',
+    '🛍️': '<path d="M5 8.500h14l-1 11.500H6z"/><path d="M9 8.500V7a3 3 0 0 1 6 0v1.500"/>'
+  };
+  var ul = $('sobre-lista'), frases = (L.sobre || []).slice();
+  if (frases.length) $('t-sobre').textContent = frases.shift()[1];
+  frases.forEach(function (par) {
+    var li = document.createElement('li'), e = document.createElement('i'), t = document.createElement('span');
+    e.setAttribute('aria-hidden', 'true');
+    e.innerHTML = '<svg viewBox="0 0 24 24">' + (DESENHOS[par[0]] || '<circle cx="12" cy="12" r="3"/>') + '</svg>';
+    t.textContent = par[1]; li.style.setProperty('--i', ul.children.length);
     li.appendChild(e); li.appendChild(t); ul.appendChild(li);
   });
   if (!(L.sobre || []).length) $('sobre').hidden = true;
@@ -85,17 +95,24 @@
   /* vitrine: as fotos passam sozinhas da esquerda para a direita (entram pela esquerda e saem pela direita).
      Anda por transformação, que é lisa e não pesa. Dá para arrastar com o dedo ou o mouse e andar com as setas do teclado; para pelo botão Pausar
      e enquanto a fila tem o foco do teclado. Passar o mouse ou tocar numa foto só aproxima a foto. Quem pediu menos movimento recebe a fila parada, para deslizar. */
-  var grade = $('grade'), fotos = L.fotos || [], trilho = document.createElement('div');
+  /* a vitrine mostra todas as peças do catálogo; tocar ou clicar em uma delas leva ao catálogo com essa peça aberta.
+     Sem catálogo nos dados, ela volta a usar a lista curta "fotos", que não abre nada. */
+  var grade = $('grade'), fotos = (L.catalogo && L.catalogo.length) ? L.catalogo : (L.fotos || []), trilho = document.createElement('div'), arrastou = 0;
   trilho.className = 'trilho'; grade.appendChild(trilho);
   function cartaoFoto(f, copia) {
     var d = document.createElement('div');
-    d.className = 'foto cor-' + (f.cor || 'a');
+    d.className = 'foto cor-' + (f.cor || 'a'); d.peca = f;
     if (f.arquivo) { var q = document.createElement('span'); q.className = 'foto-quadro'; var im = document.createElement('img'); im.src = f.arquivo; im.alt = copia ? '' : f.legenda; im.width = 720; im.height = 720; im.loading = 'lazy'; im.decoding = 'async'; im.draggable = false; q.appendChild(im); d.appendChild(q); var leg = document.createElement('span'); leg.className = 'foto-nome'; leg.textContent = f.legenda; if (!copia) leg.setAttribute('aria-hidden', 'true'); d.appendChild(leg); }
     else { d.setAttribute('role', 'img'); d.setAttribute('aria-label', f.legenda); var selo = document.createElement('span'); selo.className = 'selo'; selo.setAttribute('aria-hidden', 'true'); selo.textContent = 'Foto em breve'; d.appendChild(selo); }
     if (copia) { d.setAttribute('aria-hidden', 'true'); d.removeAttribute('role'); d.removeAttribute('aria-label'); }
     trilho.appendChild(d);
   }
   fotos.forEach(function (f) { cartaoFoto(f, false); });
+  grade.addEventListener('click', function (ev) {
+    var el = ev.target.closest ? ev.target.closest('.foto') : null;
+    if (!el || !el.peca || !el.peca.id || arrastou > 8) return;   /* quem arrastou a fila não quis abrir a peça */
+    location.hash = '#peca-' + el.peca.id;
+  });
   if (!fotos.length) document.querySelector('.pecas').hidden = true;
   if (fotos.length > 2 && !calmo && window.requestAnimationFrame) {
     fotos.forEach(function (f) { cartaoFoto(f, true); });
@@ -104,10 +121,24 @@
     botao.hidden = false;
     botao.addEventListener('click', function () { manual = !manual; botao.textContent = manual ? 'Continuar' : 'Pausar'; botao.setAttribute('aria-pressed', manual ? 'true' : 'false'); });
     function volta() { var g = parseFloat(getComputedStyle(trilho).columnGap) || 0; return (trilho.scrollWidth + g) / 2; }
-    function poe() { var v = volta(); if (v > 0) { x = ((x % v) + v) % v; trilho.style.transform = 'translate3d(' + (-x).toFixed(2) + 'px,0,0)'; } }
-    grade.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse' && ev.button !== 0) return; arrasta = true; ultX = ev.clientX; tocada = ev.target.closest ? ev.target.closest('.foto') : null; if (tocada) tocada.classList.add('tocada'); });
+    /* parede curva: as fotos das pontas viram de leve para o centro, como em uma vitrine em arco.
+       As posições são medidas uma vez (e de novo ao redimensionar); a cada quadro só as fotos visíveis recebem o giro. */
+    var medidas = [], largFila = 0, recuo = 0;
+    function medir() { medidas = [].map.call(trilho.children, function (el) { return { el: el, c: el.offsetLeft + el.offsetWidth / 2, curvo: false }; }); largFila = grade.clientWidth; recuo = parseFloat(getComputedStyle(grade).paddingLeft) || 0; }
+    function curvar() {
+      if (!largFila) return; var meio = largFila / 2;
+      for (var i = 0; i < medidas.length; i++) {
+        var m = medidas[i], r = (m.c - x + recuo - meio) / meio;
+        if (r > -1.6 && r < 1.6) { m.el.style.transform = 'perspective(700px) rotateY(' + (-r * 20).toFixed(2) + 'deg)'; m.curvo = true; }
+        else if (m.curvo) { m.el.style.transform = ''; m.curvo = false; }
+      }
+    }
+    var esperaMedida = 0;
+    addEventListener('resize', function () { clearTimeout(esperaMedida); esperaMedida = setTimeout(function () { medir(); curvar(); }, 160); });
+    function poe() { var v = volta(); if (v > 0) { x = ((x % v) + v) % v; trilho.style.transform = 'translate3d(' + (-x).toFixed(2) + 'px,0,0)'; if (!medidas.length) medir(); curvar(); } }
+    grade.addEventListener('pointerdown', function (ev) { if (ev.pointerType === 'mouse' && ev.button !== 0) return; arrasta = true; arrastou = 0; ultX = ev.clientX; tocada = ev.target.closest ? ev.target.closest('.foto') : null; if (tocada) tocada.classList.add('tocada'); });
     function solta() { if (!arrasta) return; arrasta = false; espera = Date.now() + 1200; if (tocada) { tocada.classList.remove('tocada'); tocada = null; } }
-    addEventListener('pointermove', function (ev) { if (!arrasta) return; x -= ev.clientX - ultX; ultX = ev.clientX; poe(); });
+    addEventListener('pointermove', function (ev) { if (!arrasta) return; arrastou += Math.abs(ev.clientX - ultX); x -= ev.clientX - ultX; ultX = ev.clientX; poe(); });
     addEventListener('pointerup', solta); addEventListener('pointercancel', solta);
     grade.addEventListener('focus', function () { focada = true; }); grade.addEventListener('blur', function () { focada = false; });
     grade.addEventListener('keydown', function (ev) { if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return; ev.preventDefault(); x += (ev.key === 'ArrowRight' ? 1 : -1) * volta() / fotos.length; poe(); });
@@ -311,9 +342,12 @@
   /* catálogo: todas as peças em grade, com busca, filtro por tipo e a lista de quem visita.
      Tocar numa peça abre a foto grande; dali dá para passar para a próxima, guardar na lista, mostrar a alguém ou perguntar no WhatsApp.
      A lista vive só na memória desta tela: nada é gravado no aparelho nem enviado; some ao fechar a página. */
-  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null;
+  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, GRUPOS = L.grupos || [], nomeGrupo = {}, grupoDoTipo = {}, grupo = '', filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), subchips = $('subchips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null;
   var CORACAO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.400-7-9.600A4 4 0 0 1 12 8a4 4 0 0 1 7 2.400C19 15.600 12 20 12 20z"/></svg>';
-  TIPOS.forEach(function (t) { nomeTipo[t[0]] = t[1]; });
+  TIPOS.forEach(function (t) { nomeTipo[t[0]] = t[1]; grupoDoTipo[t[0]] = t[2] || ''; });
+  GRUPOS.forEach(function (g) { nomeGrupo[g[0]] = g[1]; });
+  /* o grupo da peça vem dela mesma (campo "grupo") ou, se ela não disser, do tipo a que pertence */
+  function grupoDe(p) { return p.grupo || grupoDoTipo[p.tipo] || ''; }
   CAT.forEach(function (p) { p.id = (p.arquivo.match(/(\d+)\.\w+$/) || [0, ''])[1]; });
   /* mural do topo: colunas com fotos de peças da loja que sobem e descem devagar atrás do título, escurecidas para o texto continuar legível.
      Usa as mesmas fotos do catálogo (nada novo para baixar depois), anda só por transformação e para quando o topo sai da tela. Com "reduzir movimento", fica parado. */
@@ -334,10 +368,28 @@
     $('fundo').insertBefore(mural, $('fundo').firstChild);
     if ('IntersectionObserver' in window) new IntersectionObserver(function (v) { mural.classList.toggle('parado', !v[0].isIntersecting); }).observe($('heroi'));
   })();
+  /* fundo do catálogo: vídeo de tecido em movimento, mudo e em repetição, atrás da trama de pontos. É criado só quando o catálogo abre e toca só enquanto ele está na tela.
+     Para quem pediu menos movimento ou economia de dados, fica a imagem parada. */
+  var seda = null;
+  function ligarSeda(liga) {
+    if (L.fundoCatalogo !== 'seda') return;
+    if (!seda && liga) {
+      var poupa = navigator.connection && navigator.connection.saveData;
+      if (calmo || poupa) { seda = document.createElement('img'); seda.src = 'video/seda-capa.webp'; seda.alt = ''; }
+      else {
+        seda = document.createElement('video'); seda.muted = true; seda.loop = true; seda.playsInline = true; seda.setAttribute('muted', ''); seda.setAttribute('playsinline', ''); seda.preload = 'auto'; seda.poster = 'video/seda-capa.webp'; seda.disablePictureInPicture = true;
+        [['video/seda.webm', 'video/webm'], ['video/seda.mp4', 'video/mp4']].forEach(function (par) { var o = document.createElement('source'); o.src = par[0]; o.type = par[1]; seda.appendChild(o); });
+      }
+      seda.className = 'seda'; seda.setAttribute('aria-hidden', 'true'); $('catalogo').insertBefore(seda, $('catalogo').firstChild); $('catalogo').classList.add('com-seda');
+    }
+    if (!seda || seda.tagName !== 'VIDEO') return;
+    if (liga && !document.hidden) { var t = seda.play(); if (t && t.catch) t.catch(function () { /* o aparelho não deixou tocar sozinho: fica a capa */ }); } else seda.pause();
+  }
+  document.addEventListener('visibilitychange', function () { ligarSeda(document.body.getAttribute('data-vista') === 'catalogo'); });
   function limpo(t) { return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function filtrar() {
     var q = limpo(termo.trim());
-    return CAT.filter(function (p) { return (filtro === '*' ? gostei.indexOf(p) >= 0 : !filtro || p.tipo === filtro) && (!q || limpo(p.legenda + ' ' + (nomeTipo[p.tipo] || '')).indexOf(q) >= 0); });
+    return CAT.filter(function (p) { return (grupo === '*' ? gostei.indexOf(p) >= 0 : (!grupo || grupoDe(p) === grupo) && (!filtro || p.tipo === filtro)) && (!q || limpo(p.legenda + ' ' + (nomeTipo[p.tipo] || '') + ' ' + (nomeGrupo[grupoDe(p)] || '')).indexOf(q) >= 0); });
   }
   function marcarGosto() {
     var p = lista[atual], dentro = !!p && gostei.indexOf(p) >= 0;
@@ -345,7 +397,9 @@
   }
   function pintarPeca(i) {
     atual = (i + lista.length) % lista.length; var p = lista[atual], f = $('p-foto');
-    perto(false); f.src = p.arquivo; f.alt = p.legenda; f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
+    perto(false); f.src = p.arquivo; f.alt = p.legenda;
+    /* a foto grande, mais nítida para a lupa, só é pedida quando a peça é aberta; enquanto ela não chega, fica a do catálogo */
+    if (p.grande && !folhaPeca.classList.contains('rolando')) { var maior = new Image(); maior.onload = function () { if (lista[atual] === p && aberta === folhaPeca) f.src = p.grande; }; maior.src = p.grande; } f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
     if (folhaPeca.classList.contains('rolando')) $('p-nome').textContent = p.legenda; else embaralha($('p-nome'), p.legenda);
     $('p-cat').textContent = (nomeTipo[p.tipo] || '') + (lista.length > 1 ? ' / ' + (atual + 1) + ' de ' + lista.length : '');
     $('p-whats').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemPeca || '') + p.legenda + '.');
@@ -397,7 +451,7 @@
     if (melhor !== null && dist < innerHeight * .5 && itens.length) apontar(innerWidth / 2, melhor + itens[0].getBoundingClientRect().width * .6);
     for (var k = 0; k < itens.length; k++) {
       var li = itens[k], dentro = melhor !== null && Math.abs(li.getBoundingClientRect().top - melhor) < 6 && dist < innerHeight * .5;
-      if (dentro && !li.classList.contains('foco')) { li.classList.add('foco'); var n = li.querySelector('.peca-pe b'); if (n) embaralha(n, n.getAttribute('data-nome') || (n.setAttribute('data-nome', n.textContent), n.textContent)); }
+      if (dentro && !li.classList.contains('foco')) { li.classList.add('foco'); var n = li.querySelector('.peca-pe b'), g = li.querySelector('.gosto'), pc = g && g.peca; /* no celular o nome embaralha só na primeira vez que a peça entra em foco; repetir a cada rolagem cansava */ if (n && pc && !pc.jaMostrou) { pc.jaMostrou = true; embaralha(n, pc.legenda); } }
       else if (!dentro) li.classList.remove('foco');
     }
   }
@@ -425,7 +479,7 @@
     $('sacola-zap').setAttribute('aria-label', 'Enviar a sua lista de ' + n + (n === 1 ? ' peça' : ' peças') + ' para o WhatsApp da ' + nome);
     [].forEach.call(gradeCat.querySelectorAll('.gosto'), function (b) { b.setAttribute('aria-pressed', gostei.indexOf(b.peca) >= 0 ? 'true' : 'false'); });
     if (chipLista) { chipLista.hidden = !n; chipLista.lastChild.textContent = n; }
-    if (filtro === '*') { if (!n) { filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); } if (pintado) pintarCatalogo(); }
+    if (grupo === '*') { if (!n) { grupo = ''; pintarTipos(); [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); } if (pintado) pintarCatalogo(); }
     flutuar(); marcarGosto();
   }
   function alternar(p) { var k = gostei.indexOf(p); if (k < 0) gostei.push(p); else gostei.splice(k, 1); sacola(); }
@@ -444,24 +498,35 @@
       li.appendChild(b); li.appendChild(g); gradeCat.appendChild(li);
     });
     $('cat-vazio').hidden = lista.length > 0; focar();
-    $('cat-conta').textContent = lista.length + (lista.length === 1 ? ' peça' : ' peças') + (filtro === '*' ? ' na sua lista' : filtro ? ' em ' + nomeTipo[filtro] : '') + (termo.trim() ? ' com "' + termo.trim() + '"' : '');
+    $('cat-conta').textContent = lista.length + (lista.length === 1 ? ' peça' : ' peças') + (grupo === '*' ? ' na sua lista' : filtro ? ' em ' + nomeTipo[filtro] : grupo ? ' em ' + nomeGrupo[grupo] : '') + (termo.trim() ? ' com "' + termo.trim() + '"' : '');
   }
   function repintar() { if (calmo) { pintarCatalogo(); return; } gradeCat.classList.add('troca'); setTimeout(function () { pintarCatalogo(); gradeCat.classList.remove('troca'); }, 180); }
-  function chip(id, rotulo, n) {
+  /* um botão de filtro; "onde" é a fileira em que ele entra e "aoTocar" diz o que muda */
+  function chip(onde, rotulo, n, ligado, aoTocar) {
     var b = document.createElement('button'), q = document.createElement('sup');
     b.type = 'button'; b.className = 'chip'; b.textContent = rotulo; q.textContent = n; q.setAttribute('aria-hidden', 'true'); b.appendChild(q);
-    b.setAttribute('aria-pressed', id === filtro ? 'true' : 'false');
+    b.setAttribute('aria-pressed', ligado ? 'true' : 'false');
     b.addEventListener('click', function () {
-      if (filtro === id) return; filtro = id;
-      [].forEach.call(chips.children, function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
-      repintar();
+      if (b.getAttribute('aria-pressed') === 'true') return;
+      [].forEach.call(onde.children, function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      aoTocar(); repintar();
     });
-    chips.appendChild(b); return b;
+    onde.appendChild(b); return b;
   }
+  /* segunda fileira: os tipos de peça dentro do grupo escolhido. Só aparece quando o grupo tem mais de um tipo. */
+  function pintarTipos() {
+    subchips.textContent = ''; filtro = '';
+    var doGrupo = TIPOS.filter(function (t) { return grupo && grupo !== '*' && CAT.some(function (p) { return p.tipo === t[0] && grupoDe(p) === grupo; }); });
+    subchips.hidden = doGrupo.length < 2; if (subchips.hidden) return;
+    chip(subchips, 'Todos', CAT.filter(function (p) { return grupoDe(p) === grupo; }).length, true, function () { filtro = ''; });
+    doGrupo.forEach(function (t) { chip(subchips, t[1], CAT.filter(function (p) { return p.tipo === t[0] && grupoDe(p) === grupo; }).length, false, function () { filtro = t[0]; }); });
+  }
+  function escolherGrupo(g) { return function () { grupo = g; pintarTipos(); }; }
   if (CAT.length) {
-    chip('', 'Tudo', CAT.length);
-    TIPOS.forEach(function (t) { var n = CAT.filter(function (p) { return p.tipo === t[0]; }).length; if (n) chip(t[0], t[1], n); });
-    chipLista = chip('*', 'Minha lista', 0); chipLista.hidden = true; chipLista.classList.add('chip-lista');
+    chip(chips, 'Tudo', CAT.length, true, escolherGrupo(''));
+    if (GRUPOS.length) GRUPOS.forEach(function (g) { var n = CAT.filter(function (p) { return grupoDe(p) === g[0]; }).length; if (n) chip(chips, g[1], n, false, escolherGrupo(g[0])); });
+    else TIPOS.forEach(function (t) { var n = CAT.filter(function (p) { return p.tipo === t[0]; }).length; if (n) chip(chips, t[1], n, false, function () { grupo = ''; filtro = t[0]; }); });
+    chipLista = chip(chips, 'Minha lista', 0, false, escolherGrupo('*')); chipLista.hidden = true; chipLista.classList.add('chip-lista');
     var esperaBusca = 0;
     $('busca').addEventListener('input', function () { termo = $('busca').value; clearTimeout(esperaBusca); esperaBusca = setTimeout(repintar, 140); });
     $('p-ant').addEventListener('click', function () { pintarPeca(atual - 1); });
@@ -509,7 +574,7 @@
     if (qual === 'catalogo') $('aba-inicio').removeAttribute('aria-current'); else $('aba-inicio').setAttribute('aria-current', 'page');
     if (qual === 'catalogo') $('aba-catalogo').setAttribute('aria-current', 'page'); else $('aba-catalogo').removeAttribute('aria-current');
     if (qual === 'catalogo' && !pintado) { pintado = true; pintarCatalogo(); }
-    scrollTo(0, 0); sacola();
+    scrollTo(0, 0); sacola(); ligarSeda(qual === 'catalogo');
     if (qual === 'catalogo') { embaralha($('t-cat'), 'Catálogo'); if (luzX < -900) apontar(innerWidth * .7, innerHeight * .3); setTimeout(focar, 700); }
   }
   function pecaDoEndereco(h) { var id = h.indexOf('#peca-') === 0 ? h.slice(6) : '', p = null; CAT.forEach(function (c) { if (id && c.id === id) p = c; }); return p; }

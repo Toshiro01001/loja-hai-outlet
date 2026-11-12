@@ -19,6 +19,8 @@ window.LOJA = {
   whatsapp: '556599406901',
   whatsappTexto: '(65) 9940-6901',
   mensagemWhats: 'Olá! Vim pelo cartão da loja.',
+  /* link de convite do grupo do WhatsApp da loja (começa com https://chat.whatsapp.com/). Vazio, o botão não aparece. */
+  grupoWhats: '',
   instagram: 'https://www.instagram.com/hai_outlet/',
   tiktok: 'https://www.tiktok.com/@hai.outlet',
   /* ponto do supermercado onde a loja fica, tirado do Google Maps */
@@ -52,9 +54,22 @@ window.LOJA = {
      São fotos de catálogo das marcas que a loja revende; a dona ainda vai dizer se pode usar. Sem preço nem tamanho: isso muda e a loja responde pelo WhatsApp. */
   /* grupos do catálogo, na ordem em que aparecem. Um grupo sem nenhuma peça não é mostrado.
      Para uma peça entrar em Fitness, acrescente grupo: 'x' nela, por exemplo: { arquivo: '...', legenda: '...', tipo: 'c', grupo: 'x' } */
-  grupos: [['f', 'Feminino'], ['m', 'Masculino'], ['x', 'Fitness']],
+  grupos: [['f', 'Feminino'], ['m', 'Masculino'], ['x', 'Fitness'], ['a', 'Acessórios']],
   /* tipos de peça: código, nome e o grupo a que pertencem */
-  tipos: [['v', 'Vestidos', 'f'], ['c', 'Conjuntos', 'f'], ['b', 'Blusas', 'f'], ['m', 'Masculino', 'm']],
+  tipos: [['v', 'Vestidos', 'f'], ['c', 'Conjuntos', 'f'], ['b', 'Blusas', 'f'], ['m', 'Masculino', 'm'], ['a', 'Acessórios', 'a']],
+  /* marcas que a loja vende: código e nome. Uma marca sem nenhuma peça não é mostrada. */
+  marcas: [['hering', 'Hering']],
+  /* marca que ganha um destaque no início, com atalho para o catálogo dela. Só aparece quando houver peça dessa marca. */
+  marcaDestaque: 'hering',
+  /* tamanhos que a pessoa pode escolher ao abrir uma peça, na ordem em que aparecem */
+  tamanhos: ['PP', 'P', 'M', 'G', 'GG'],
+  /* O que cada peça pode ter além da foto, do nome e do tipo. Tudo é opcional e só aparece quando a loja informar:
+       codigo: 'H1234'                      código da peça na loja
+       marca: 'hering'                      um dos códigos da lista "marcas"
+       de: 99.9, por: 69.9                  valor normal (aparece riscado) e valor de venda; com os dois, a peça entra na tela Ofertas
+       tamanhos: { P: 1, M: 0, G: 1 }       1 = disponível, 0 = esgotado; tamanho que não está na lista não é oferecido
+     Exemplo: { arquivo: 'fotos/c-23.webp', legenda: 'Camiseta azul', tipo: 'm', marca: 'hering', codigo: 'H1234', de: 99.9, por: 69.9, tamanhos: { P: 1, M: 0, G: 1 } }
+     Os valores são informados pela loja e são responsabilidade dela. */
   mensagemPeca: 'Olá! Vim pelo cartão da loja e gostei desta peça do catálogo: ',
   /* fundo do catálogo: 'seda' põe o vídeo de tecido em movimento atrás das peças; qualquer outro valor deixa só a trama de pontos */
   fundoCatalogo: 'seda',

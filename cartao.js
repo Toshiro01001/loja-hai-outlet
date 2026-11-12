@@ -236,7 +236,7 @@
   $('f-salvar').href = L.contato; $('f-salvar').setAttribute('download', 'contato-da-loja.vcf');
   function mostrar(qual, foco) { if (aberta) aberta.hidden = true; else antes = document.activeElement; aberta = qual; qual.hidden = false; veu.hidden = false; document.body.classList.add('com-folha'); flutuar(); foco.focus(); }
   function abrir() { mostrar(folha, $('f-salvar')); }
-  function fechar() { if (!aberta) return; if (aberta === folhaPeca && location.hash.indexOf('#peca-') === 0 && history.replaceState) history.replaceState(null, '', '#catalogo'); aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); flutuar(); if (antes && antes.focus) antes.focus(); }
+  function fechar() { if (!aberta) return; if (aberta === folhaPeca && location.hash.indexOf('#peca-') === 0 && history.replaceState) history.replaceState(null, '', ofertas ? '#ofertas' : '#catalogo'); aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); flutuar(); if (antes && antes.focus) antes.focus(); }
   /* no celular, as folhas descem com o dedo: arrastar para baixo acompanha o movimento e, passando de um terço da folha ou com um puxão rápido, fecha.
      Enquanto uma folha está aberta, o gesto não chega ao navegador, então puxar para baixo não recarrega mais a página. */
   (function () {
@@ -342,10 +342,21 @@
   /* catálogo: todas as peças em grade, com busca, filtro por tipo e a lista de quem visita.
      Tocar numa peça abre a foto grande; dali dá para passar para a próxima, guardar na lista, mostrar a alguém ou perguntar no WhatsApp.
      A lista vive só na memória desta tela: nada é gravado no aparelho nem enviado; some ao fechar a página. */
-  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, GRUPOS = L.grupos || [], nomeGrupo = {}, grupoDoTipo = {}, grupo = '', filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), subchips = $('subchips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null;
+  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, GRUPOS = L.grupos || [], nomeGrupo = {}, grupoDoTipo = {}, grupo = '', filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), subchips = $('subchips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null, MARCAS = L.marcas || [], nomeMarca = {}, marca = '', ofertas = false, TAM = L.tamanhos || [];
   var CORACAO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.400-7-9.600A4 4 0 0 1 12 8a4 4 0 0 1 7 2.400C19 15.600 12 20 12 20z"/></svg>';
   TIPOS.forEach(function (t) { nomeTipo[t[0]] = t[1]; grupoDoTipo[t[0]] = t[2] || ''; });
   GRUPOS.forEach(function (g) { nomeGrupo[g[0]] = g[1]; });
+  MARCAS.forEach(function (m) { nomeMarca[m[0]] = m[1]; });
+  /* preço, oferta e tamanhos: só existem quando a loja informa os dados da peça em dados.js */
+  function real(v) { return 'R$ ' + (+v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function temPreco(p) { return typeof p.por === 'number' && p.por > 0; }
+  function emOferta(p) { return temPreco(p) && typeof p.de === 'number' && p.de > p.por; }
+  function desconto(p) { return emOferta(p) ? Math.round((1 - p.por / p.de) * 100) : 0; }
+  function tamanhosDe(p) { return p.tamanhos ? TAM.filter(function (t) { return t in p.tamanhos; }) : TAM.slice(); }
+  function temTamanho(p, t) { return !p.tamanhos || !!p.tamanhos[t]; }
+  function esgotada(p) { return !!p.tamanhos && tamanhosDe(p).length > 0 && !tamanhosDe(p).some(function (t) { return p.tamanhos[t]; }); }
+  /* como a peça é escrita na mensagem do WhatsApp: nome, código e o tamanho que a pessoa escolheu */
+  function textoPeca(p) { return p.legenda + (p.codigo ? ' (código ' + p.codigo + ')' : '') + (p.escolha ? ', tamanho ' + p.escolha : ''); }
   /* o grupo da peça vem dela mesma (campo "grupo") ou, se ela não disser, do tipo a que pertence */
   function grupoDe(p) { return p.grupo || grupoDoTipo[p.tipo] || ''; }
   CAT.forEach(function (p) { p.id = (p.arquivo.match(/(\d+)\.\w+$/) || [0, ''])[1]; });
@@ -389,7 +400,10 @@
   function limpo(t) { return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function filtrar() {
     var q = limpo(termo.trim());
-    return CAT.filter(function (p) { return (grupo === '*' ? gostei.indexOf(p) >= 0 : (!grupo || grupoDe(p) === grupo) && (!filtro || p.tipo === filtro)) && (!q || limpo(p.legenda + ' ' + (nomeTipo[p.tipo] || '') + ' ' + (nomeGrupo[grupoDe(p)] || '')).indexOf(q) >= 0); });
+    var achadas = CAT.filter(function (p) { return (!ofertas || emOferta(p)) && (grupo === '*' ? gostei.indexOf(p) >= 0 : (!marca || p.marca === marca) && (!grupo || grupoDe(p) === grupo) && (!filtro || p.tipo === filtro)) && (!q || limpo(p.legenda + ' ' + (nomeTipo[p.tipo] || '') + ' ' + (nomeGrupo[grupoDe(p)] || '') + ' ' + (nomeMarca[p.marca] || '') + ' ' + (p.codigo || '')).indexOf(q) >= 0); });
+    /* na tela Ofertas, a maior economia vem primeiro */
+    if (ofertas) achadas.sort(function (a, b) { return desconto(b) - desconto(a); });
+    return achadas;
   }
   function marcarGosto() {
     var p = lista[atual], dentro = !!p && gostei.indexOf(p) >= 0;
@@ -401,11 +415,38 @@
     /* a foto grande, mais nítida para a lupa, só é pedida quando a peça é aberta; enquanto ela não chega, fica a do catálogo */
     if (p.grande && !folhaPeca.classList.contains('rolando')) { var maior = new Image(); maior.onload = function () { if (lista[atual] === p && aberta === folhaPeca) f.src = p.grande; }; maior.src = p.grande; } f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
     if (folhaPeca.classList.contains('rolando')) $('p-nome').textContent = p.legenda; else embaralha($('p-nome'), p.legenda);
-    $('p-cat').textContent = (nomeTipo[p.tipo] || '') + (lista.length > 1 ? ' / ' + (atual + 1) + ' de ' + lista.length : '');
-    $('p-whats').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemPeca || '') + p.legenda + '.');
+    $('p-cat').textContent = (nomeMarca[p.marca] ? nomeMarca[p.marca] + ' / ' : '') + (nomeTipo[p.tipo] || '') + (lista.length > 1 ? ' / ' + (atual + 1) + ' de ' + lista.length : '');
+    $('p-codigo').hidden = !p.codigo; $('p-codigo').textContent = p.codigo ? 'Código ' + p.codigo : '';
+    var pr = $('p-preco'); pr.textContent = ''; pr.hidden = !temPreco(p);
+    if (temPreco(p)) {
+      if (emOferta(p)) { var de = document.createElement('s'), so = document.createElement('span'); so.className = 'so-leitor'; so.textContent = 'De '; de.textContent = real(p.de); pr.appendChild(so); pr.appendChild(de); var por0 = document.createElement('span'); por0.className = 'so-leitor'; por0.textContent = ' por '; pr.appendChild(por0); }
+      var por = document.createElement('b'); por.textContent = real(p.por); pr.appendChild(por);
+      if (emOferta(p)) { var eco = document.createElement('em'); eco.textContent = desconto(p) + '% a menos'; pr.appendChild(eco); }
+    }
+    pintarTamanhos(p); ligarWhatsPeca(p);
     $('p-whats').setAttribute('aria-label', 'Perguntar sobre ' + p.legenda + ' no WhatsApp da ' + nome);
     $('p-ant').hidden = $('p-prox').hidden = lista.length < 2; marcarGosto();
     if (history.replaceState) history.replaceState(null, '', '#peca-' + p.id);
+  }
+  /* tamanhos: um botão para cada tamanho da peça. Esgotado aparece riscado e não pode ser escolhido.
+     Sem a lista de tamanhos da peça, todos ficam à escolha e a loja confirma na conversa. */
+  function pintarTamanhos(p) {
+    var cx = $('p-tam'), ts = tamanhosDe(p), fim = esgotada(p); cx.textContent = '';
+    $('p-tam-bloco').hidden = !ts.length; if (!ts.length) return;
+    if (p.escolha && (ts.indexOf(p.escolha) < 0 || !temTamanho(p, p.escolha))) p.escolha = '';
+    ts.forEach(function (t) {
+      var b = document.createElement('button'), tem = temTamanho(p, t);
+      b.type = 'button'; b.className = 'tam'; b.textContent = t; b.disabled = !tem;
+      b.setAttribute('aria-pressed', p.escolha === t ? 'true' : 'false');
+      b.setAttribute('aria-label', 'Tamanho ' + t + (tem ? '' : ', esgotado'));
+      b.addEventListener('click', function () { p.escolha = p.escolha === t ? '' : t; pintarTamanhos(p); ligarWhatsPeca(p); if (gostei.indexOf(p) >= 0) sacola(); });
+      cx.appendChild(b);
+    });
+    $('p-tam-nota').textContent = fim ? 'Esgotado em todos os tamanhos. Pergunte à loja quando volta.' : p.tamanhos ? (p.escolha ? 'Tamanho ' + p.escolha + ' disponível.' : 'Riscado é tamanho esgotado.') : 'A loja confirma na conversa se tem o seu tamanho.';
+  }
+  function ligarWhatsPeca(p) {
+    $('p-whats').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemPeca || '') + textoPeca(p) + '.');
+    $('p-whats-texto').textContent = esgotada(p) ? 'Perguntar quando volta' : p.escolha ? 'Pedir no tamanho ' + p.escolha : 'Perguntar no WhatsApp';
   }
   /* letras que se embaralham e assentam, da esquerda para a direita. O nome certo fica no rótulo de leitura; isto é só para os olhos. */
   var SORTE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -475,7 +516,7 @@
     var n = gostei.length;
     $('sacola').hidden = !n || document.body.getAttribute('data-vista') !== 'catalogo';
     $('sacola-n').textContent = n + (n === 1 ? ' peça na sua lista' : ' peças na sua lista');
-    $('sacola-zap').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemLista || '') + '\n' + gostei.map(function (p) { return '- ' + p.legenda; }).join('\n'));
+    $('sacola-zap').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemLista || '') + '\n' + gostei.map(function (p) { return '- ' + textoPeca(p); }).join('\n'));
     $('sacola-zap').setAttribute('aria-label', 'Enviar a sua lista de ' + n + (n === 1 ? ' peça' : ' peças') + ' para o WhatsApp da ' + nome);
     [].forEach.call(gradeCat.querySelectorAll('.gosto'), function (b) { b.setAttribute('aria-pressed', gostei.indexOf(b.peca) >= 0 ? 'true' : 'false'); });
     if (chipLista) { chipLista.hidden = !n; chipLista.lastChild.textContent = n; }
@@ -491,14 +532,23 @@
       b.type = 'button'; b.className = 'peca'; b.setAttribute('aria-label', p.legenda + '. Ver de perto.');
       q.className = 'peca-quadro'; im.src = p.arquivo; im.alt = ''; im.width = 600; im.height = 750; im.loading = i < 4 ? 'eager' : 'lazy'; im.decoding = 'async'; q.appendChild(im);
       var ver = document.createElement('span'); ver.className = 'peca-ver'; ver.setAttribute('aria-hidden', 'true'); ver.textContent = 'Ver de perto'; q.appendChild(ver);
-      pe.className = 'peca-pe'; n.textContent = p.legenda; t.textContent = nomeTipo[p.tipo] || ''; pe.appendChild(n); pe.appendChild(t);
+      pe.className = 'peca-pe'; n.textContent = p.legenda; t.textContent = (nomeMarca[p.marca] ? nomeMarca[p.marca] + ' / ' : '') + (nomeTipo[p.tipo] || ''); pe.appendChild(n); pe.appendChild(t);
+      if (temPreco(p)) {
+        var pc = document.createElement('span'); pc.className = 'peca-preco';
+        if (emOferta(p)) { var ds = document.createElement('s'); ds.textContent = real(p.de); pc.appendChild(ds); }
+        var pb = document.createElement('strong'); pb.textContent = real(p.por); pc.appendChild(pb); pe.appendChild(pc);
+      }
+      var selo = esgotada(p) ? 'Esgotado' : emOferta(p) ? '-' + desconto(p) + '%' : '';
+      if (selo) { var sl = document.createElement('span'); sl.className = 'peca-selo' + (esgotada(p) ? ' fim' : ''); sl.textContent = selo; q.appendChild(sl); }
+      b.setAttribute('aria-label', p.legenda + (temPreco(p) ? (emOferta(p) ? ', de ' + real(p.de) + ' por ' + real(p.por) : ', ' + real(p.por)) : '') + (esgotada(p) ? ', esgotado' : '') + '. Ver de perto.');
       b.appendChild(q); b.appendChild(pe); b.addEventListener('click', function () { verPeca(p); });
       g.type = 'button'; g.className = 'gosto'; g.peca = p; g.innerHTML = CORACAO; g.setAttribute('aria-label', 'Guardar ' + p.legenda + ' na minha lista'); g.setAttribute('aria-pressed', gostei.indexOf(p) >= 0 ? 'true' : 'false');
       g.addEventListener('click', function () { alternar(p); });
       li.appendChild(b); li.appendChild(g); gradeCat.appendChild(li);
     });
     $('cat-vazio').hidden = lista.length > 0; focar();
-    $('cat-conta').textContent = lista.length + (lista.length === 1 ? ' peça' : ' peças') + (grupo === '*' ? ' na sua lista' : filtro ? ' em ' + nomeTipo[filtro] : grupo ? ' em ' + nomeGrupo[grupo] : '') + (termo.trim() ? ' com "' + termo.trim() + '"' : '');
+    $('cat-vazio').textContent = ofertas && !termo.trim() && !marca && !grupo ? 'Nenhuma oferta no momento. As promoções da loja aparecem aqui assim que entram.' : 'Nenhuma peça encontrada. Tente outra palavra ou toque em Tudo.';
+    $('cat-conta').textContent = lista.length + (ofertas ? (lista.length === 1 ? ' oferta' : ' ofertas') : (lista.length === 1 ? ' peça' : ' peças')) + (marca && grupo !== '*' ? ' da ' + nomeMarca[marca] : '') + (grupo === '*' ? ' na sua lista' : filtro ? ' em ' + nomeTipo[filtro] : grupo ? ' em ' + nomeGrupo[grupo] : '') + (termo.trim() ? ' com "' + termo.trim() + '"' : '');
   }
   function repintar() { if (calmo) { pintarCatalogo(); return; } gradeCat.classList.add('troca'); setTimeout(function () { pintarCatalogo(); gradeCat.classList.remove('troca'); }, 180); }
   /* um botão de filtro; "onde" é a fileira em que ele entra e "aoTocar" diz o que muda */
@@ -527,6 +577,13 @@
     if (GRUPOS.length) GRUPOS.forEach(function (g) { var n = CAT.filter(function (p) { return grupoDe(p) === g[0]; }).length; if (n) chip(chips, g[1], n, false, escolherGrupo(g[0])); });
     else TIPOS.forEach(function (t) { var n = CAT.filter(function (p) { return p.tipo === t[0]; }).length; if (n) chip(chips, t[1], n, false, function () { grupo = ''; filtro = t[0]; }); });
     chipLista = chip(chips, 'Minha lista', 0, false, escolherGrupo('*')); chipLista.hidden = true; chipLista.classList.add('chip-lista');
+    /* fileira de marcas: só aparece quando alguma peça tem marca informada */
+    var comMarca = MARCAS.filter(function (m) { return CAT.some(function (p) { return p.marca === m[0]; }); });
+    if (comMarca.length) {
+      $('marcas').hidden = false;
+      chip($('marcas'), 'Todas as marcas', CAT.length, true, function () { marca = ''; });
+      comMarca.forEach(function (m) { var cm = chip($('marcas'), m[1], CAT.filter(function (p) { return p.marca === m[0]; }).length, false, function () { marca = m[0]; }); cm.setAttribute('data-marca', m[0]); });
+    }
     var esperaBusca = 0;
     $('busca').addEventListener('input', function () { termo = $('busca').value; clearTimeout(esperaBusca); esperaBusca = setTimeout(repintar, 140); });
     $('p-ant').addEventListener('click', function () { pintarPeca(atual - 1); });
@@ -564,34 +621,55 @@
         pintarPeca(Math.floor(Math.random() * lista.length));
       }, 110);
     });
-  } else { $('aba-catalogo').hidden = true; $('b-catalogo').hidden = true; }
+  } else { $('aba-catalogo').hidden = true; $('aba-ofertas').hidden = true; $('b-catalogo').hidden = true; }
 
   /* duas vistas na mesma página: Início e Catálogo. O endereço ganha #catalogo, então o botão de voltar do celular funciona e dá para mandar o link direto do catálogo.
      Cada peça também tem o seu endereço (#peca-49): quem recebe o link cai direto na foto dela. */
-  function trocar(qual) {
-    document.body.setAttribute('data-vista', qual);
+  function marcarMarca(m) { marca = m; [].forEach.call($('marcas').children, function (c, k) { c.setAttribute('aria-pressed', (m ? c.getAttribute('data-marca') === m : k === 0) ? 'true' : 'false'); }); }
+  function trocar(qual, emOfertas) {
+    var aba = qual === 'catalogo' && emOfertas ? 'ofertas' : qual, mudouModo = ofertas !== !!emOfertas;
+    ofertas = !!emOfertas;
+    /* ao entrar ou sair de Ofertas, os filtros voltam ao começo: quem toca em Ofertas quer ver todas */
+    if (mudouModo && CAT.length) { marcarMarca(''); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos(); }
+    document.body.setAttribute('data-vista', qual); document.body.setAttribute('data-aba', aba);
     $('inicio').hidden = qual !== 'inicio'; $('catalogo').hidden = qual !== 'catalogo';
-    if (qual === 'catalogo') $('aba-inicio').removeAttribute('aria-current'); else $('aba-inicio').setAttribute('aria-current', 'page');
-    if (qual === 'catalogo') $('aba-catalogo').setAttribute('aria-current', 'page'); else $('aba-catalogo').removeAttribute('aria-current');
-    if (qual === 'catalogo' && !pintado) { pintado = true; pintarCatalogo(); }
+    ['inicio', 'catalogo', 'ofertas'].forEach(function (n) { if (n === aba) $('aba-' + n).setAttribute('aria-current', 'page'); else $('aba-' + n).removeAttribute('aria-current'); });
+    if (qual === 'catalogo') {
+      $('cat-apoio').textContent = ofertas ? 'Peças com preço reduzido. O valor riscado é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
+      if (!pintado || mudouModo) { pintado = true; pintarCatalogo(); }
+    }
     scrollTo(0, 0); sacola(); ligarSeda(qual === 'catalogo');
-    if (qual === 'catalogo') { embaralha($('t-cat'), 'Catálogo'); if (luzX < -900) apontar(innerWidth * .7, innerHeight * .3); setTimeout(focar, 700); }
+    if (qual === 'catalogo') { embaralha($('t-cat'), ofertas ? 'Ofertas' : 'Catálogo'); if (luzX < -900) apontar(innerWidth * .7, innerHeight * .3); setTimeout(focar, 700); }
   }
   function pecaDoEndereco(h) { var id = h.indexOf('#peca-') === 0 ? h.slice(6) : '', p = null; CAT.forEach(function (c) { if (id && c.id === id) p = c; }); return p; }
   function vista(primeira) {
-    var h = location.hash, peca = pecaDoEndereco(h), qual = CAT.length && (h === '#catalogo' || h.indexOf('#peca-') === 0) ? 'catalogo' : 'inicio';
-    if (qual === document.body.getAttribute('data-vista') && !primeira) {
+    var h = location.hash, peca = pecaDoEndereco(h), qual = CAT.length && (h === '#catalogo' || h === '#ofertas' || h.indexOf('#peca-') === 0) ? 'catalogo' : 'inicio';
+    /* abrir uma peça não muda de tela: quem estava em Ofertas continua em Ofertas */
+    var emOfertas = qual === 'catalogo' && (h === '#ofertas' || (!!peca && ofertas && document.body.getAttribute('data-vista') === 'catalogo'));
+    if (qual === document.body.getAttribute('data-vista') && emOfertas === ofertas && !primeira) {
       if (peca) { verPeca(peca); return; }
-      if (h === '#inicio' || h === '#catalogo') { if (aberta) fechar(); scrollTo({ top: 0, behavior: calmo ? 'auto' : 'smooth' }); }
+      if (h === '#inicio' || h === '#catalogo' || h === '#ofertas') { if (aberta) fechar(); scrollTo({ top: 0, behavior: calmo ? 'auto' : 'smooth' }); }
       return;
     }
     if (aberta) { aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); }
-    if (primeira || calmo) { trocar(qual); if (peca) verPeca(peca); return; }
-    if (document.startViewTransition) { document.startViewTransition(function () { trocar(qual); if (peca) verPeca(peca); }); return; }
-    trocar(qual); var el = $(qual); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); if (peca) verPeca(peca);
+    if (primeira || calmo) { trocar(qual, emOfertas); if (peca) verPeca(peca); return; }
+    if (document.startViewTransition) { document.startViewTransition(function () { trocar(qual, emOfertas); if (peca) verPeca(peca); }); return; }
+    trocar(qual, emOfertas); var el = $(qual); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); if (peca) verPeca(peca);
   }
   addEventListener('hashchange', function () { vista(false); });
-  [].forEach.call(document.querySelectorAll('a[href="#inicio"], a[href="#catalogo"]'), function (a) { a.addEventListener('click', function () { if (location.hash === a.getAttribute('href')) vista(false); }); });
+  [].forEach.call(document.querySelectorAll('a[href="#inicio"], a[href="#catalogo"], a[href="#ofertas"]'), function (a) { a.addEventListener('click', function () { if (location.hash === a.getAttribute('href')) vista(false); }); });
+  /* grupo do WhatsApp: o botão só aparece com um link de convite válido em dados.js */
+  if (/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+/.test(L.grupoWhats || '')) { var bg = $('b-grupo'); bg.href = L.grupoWhats; bg.target = '_blank'; bg.hidden = false; bg.setAttribute('aria-label', 'Entrar no grupo do WhatsApp da ' + nome); }
+  /* marca em destaque no início: aparece só quando há peças dela no catálogo, e o botão abre o catálogo já filtrado */
+  (function () {
+    var m = L.marcaDestaque, n = m && nomeMarca[m] ? CAT.filter(function (p) { return p.marca === m; }).length : 0;
+    if (!n) return;
+    $('marca-destaque').hidden = false;
+    $('t-marca').textContent = nomeMarca[m] + ' na ' + nome;
+    $('marca-apoio').textContent = n + (n === 1 ? ' peça' : ' peças') + ' da ' + nomeMarca[m] + ' no catálogo, com tamanho e preço.';
+    $('b-marca-texto').textContent = 'Ver as peças ' + nomeMarca[m];
+    $('b-marca').addEventListener('click', function () { marcarMarca(m); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos(); if (pintado) pintarCatalogo(); if (location.hash === '#catalogo') vista(false); });
+  })();
   vista(true);
 
   /* oferece o contato ao abrir, uma vez por visita, só no celular: é nele que o cartão é encostado.

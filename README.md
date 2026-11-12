@@ -43,3 +43,19 @@ A página não tem cadastro, não usa cookies, não conta visitas e não guarda 
 
 1. Coloque a foto em `fotos/`, em WebP, na proporção 4 por 5.
 2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` masculino). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.
+
+## Marcas, ofertas, preço e tamanho
+
+O menu tem três telas: **Início**, **Catálogo** e **Ofertas**. Tudo é ligado pelos dados de `dados.js`, e cada recurso só aparece quando a loja informa o dado:
+
+| Dado em `dados.js` | O que aparece |
+|---|---|
+| `grupoWhats` (link de convite) | Botão **Entrar no grupo do WhatsApp** no início |
+| `marca` na peça | Fileira de marcas no catálogo e o nome da marca na peça |
+| `marcaDestaque` | Bloco da marca no início, com atalho para o catálogo dela |
+| `codigo` na peça | Código na ficha e na mensagem do WhatsApp |
+| `de` e `por` na peça | Valor normal riscado e valor de venda; a peça entra em **Ofertas**, da maior economia para a menor |
+| `tamanhos` na peça (`{ P: 1, M: 0 }`) | Botões de tamanho; `0` aparece riscado, como esgotado |
+| peça com `tipo: 'a'` | Grupo **Acessórios** no catálogo |
+
+Sem a lista de tamanhos, a ficha oferece PP, P, M, G e GG e avisa que a loja confirma na conversa. O tamanho escolhido e o código vão escritos na mensagem do WhatsApp. O site não tem ligação com o caixa da loja: disponível e esgotado valem pelo que foi informado por último. Os valores são informados pela loja.

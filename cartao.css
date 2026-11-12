@@ -42,11 +42,12 @@ h2 { font: 500 clamp(30px, 8vw, 44px)/1.08 var(--serifa); letter-spacing: -.01em
 .barra-marca { display: flex; align-items: center; gap: 8px; text-decoration: none; padding-right: 4px; min-height: 40px; }
 .barra-marca img { width: 32px; height: 32px; border-radius: 50%; background: #fff; object-fit: cover; }
 .barra-marca b { font: 600 12px/1 var(--texto); letter-spacing: .08em; display: none; }
-.abas { position: relative; display: grid; grid-template-columns: 1fr 1fr; background: rgba(255, 255, 255, .06); border-radius: 999px; padding: 3px; }
+.abas { position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; background: rgba(255, 255, 255, .06); border-radius: 999px; padding: 3px; }
 .abas a { position: relative; z-index: 1; min-width: 86px; min-height: 44px; display: grid; place-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; text-decoration: none; color: rgba(255, 255, 255, .72); border-radius: 999px; transition: color .3s; }
 .abas a[aria-current] { color: var(--obs); }
-.abas-marca { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: var(--verde); transition: transform .55s var(--solta); }
-body[data-vista="catalogo"] .abas-marca { transform: translateX(100%); }
+.abas-marca { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 999px; background: var(--verde); transition: transform .55s var(--solta); }
+body[data-aba="catalogo"] .abas-marca { transform: translateX(100%); }
+body[data-aba="ofertas"] .abas-marca { transform: translateX(200%); }
 .barra-estado { display: flex; align-items: center; gap: 6px; padding: 0 12px 0 4px; font-size: 12.5px; font-weight: 500; white-space: nowrap; color: rgba(255, 255, 255, .86); }
 .ponto { width: 8px; height: 8px; border-radius: 50%; background: #d08a6a; flex: none; }
 .aberta .ponto { background: var(--verde); box-shadow: 0 0 0 0 rgba(164, 207, 69, .6); animation: pulsa 2.4s infinite; }
@@ -618,3 +619,40 @@ body.com-folha { overscroll-behavior-y: none; }
 .indicar::before { content: ''; position: absolute; z-index: -1; right: -18%; top: -160%; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, rgba(164, 207, 69, .34), transparent); pointer-events: none; animation: luz-painel 13s ease-in-out infinite alternate-reverse; will-change: transform; }
 @keyframes luz-painel { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-38%, 26%, 0) scale(1.25); } }
 @media (prefers-reduced-motion: reduce) { .sobre-painel::before, .indicar::before { animation: none; } }
+
+/* ---------- marcas, ofertas, preço e tamanho (11/2026) ---------- */
+.chips.marcas { margin-top: 18px; }
+.chips.marcas + .chips { margin-top: 10px; }
+.peca-quadro { position: relative; }
+.peca-selo { position: absolute; left: 10px; top: 10px; z-index: 2; padding: 6px 10px; border-radius: 999px; background: var(--verde); color: var(--obs); font: 600 11px/1 var(--maquina); letter-spacing: .06em; }
+.peca-selo.fim { background: var(--obs); color: #fff; }
+.peca-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-top: 2px; font-size: 14.5px; }
+.peca-preco s { color: var(--cinza); font-size: 12.5px; }
+.peca-preco strong { font-weight: 600; }
+.p-codigo { margin: 4px 0 0; font: 500 11px/1.3 var(--maquina); letter-spacing: .12em; text-transform: uppercase; color: var(--cinza); }
+.p-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 10px 0 0; }
+.p-preco s { color: var(--cinza); font-size: 15px; }
+.p-preco b { font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+.p-preco em { font: 600 11px/1 var(--maquina); font-style: normal; letter-spacing: .06em; padding: 6px 9px; border-radius: 999px; background: var(--verde); color: var(--obs); }
+.p-tam-bloco { margin: 14px 0 4px; }
+.p-tam-rotulo { margin: 0 0 8px; font: 500 10px/1.2 var(--maquina); letter-spacing: .14em; text-transform: uppercase; color: var(--cinza); }
+.p-tam { display: flex; flex-wrap: wrap; gap: 8px; }
+.tam { min-width: 52px; min-height: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid rgba(28, 32, 28, .22); background: var(--papel); font-size: 15px; font-weight: 600; transition: background-color .25s, color .25s, border-color .25s, transform .2s var(--solta); }
+.tam:hover:not(:disabled) { border-color: var(--obs); }
+.tam:active:not(:disabled) { transform: scale(.95); }
+.tam[aria-pressed="true"] { background: var(--obs); border-color: var(--obs); color: #fff; }
+.tam:disabled { color: var(--cinza); text-decoration: line-through; border-style: dashed; background: transparent; cursor: not-allowed; }
+.p-tam-nota { margin: 8px 0 0; font-size: 13px; color: var(--cinza); min-height: 1.4em; }
+.marca-cartao { display: grid; gap: 18px; align-items: center; padding: clamp(22px, 5vw, 36px); border-radius: 24px; background: var(--obs); color: #fff; }
+.marca-cartao .rotulo { color: var(--verde); }
+.marca-cartao h2 { margin: 6px 0 8px; color: #fff; }
+.marca-apoio { margin: 0; color: rgba(255, 255, 255, .72); max-width: 44ch; }
+.marca-cartao .acao { justify-self: start; }
+@media (min-width: 760px) { .marca-cartao { grid-template-columns: 1fr auto; } .marca-cartao .acao { justify-self: end; } }
+@media (max-width: 380px) { .abas a { min-width: 0; padding: 0 9px; font-size: 13px; } }
+/* a ficha ganhou código, preço e tamanhos: a foto mantém a altura dela e a folha rola quando não couber */
+.folha-peca { grid-auto-rows: max-content; gap: 10px; }
+.folha-peca .peca-grande { max-height: 40dvh; width: auto; height: 40dvh; }
+.folha-peca .p-codigo, .folha-peca .p-preco, .folha-peca .p-tam-bloco { margin-top: 0; }
+@media (max-height: 700px) { .folha-peca .peca-grande { height: 34dvh; max-height: 34dvh; } }
+@media (max-width: 360px) { .p-tam { gap: 6px; } .tam { min-width: 46px; padding: 0 8px; } }

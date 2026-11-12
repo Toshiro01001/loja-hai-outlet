@@ -2,7 +2,7 @@
 window.LOJA = {
   nome: 'HAI OUTLET',
   logo: 'logo.webp',
-  frase: 'Estilo que valoriza você, em todos os tamanhos e gostos!',
+  frase: 'Aqui tem promoção todo dia!',
   frase2: 'Qualidade, variedade e looks incríveis esperam por você!',
   sobre: [
     ['✨', 'Seu estilo, seu corpo, sua melhor versão!'],
@@ -20,7 +20,7 @@ window.LOJA = {
   whatsappTexto: '(65) 9940-6901',
   mensagemWhats: 'Olá! Vim pelo cartão da loja.',
   /* link de convite do grupo do WhatsApp da loja (começa com https://chat.whatsapp.com/). Vazio, o botão não aparece. */
-  grupoWhats: '',
+  grupoWhats: 'https://chat.whatsapp.com/FHSV3YYRH7nHLPZIIJ2I5O',
   instagram: 'https://www.instagram.com/hai_outlet/',
   tiktok: 'https://www.tiktok.com/@hai.outlet',
   /* ponto do supermercado onde a loja fica, tirado do Google Maps */

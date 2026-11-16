@@ -232,6 +232,15 @@ h1 { font: 500 clamp(31px, 9.4vw, 76px)/1.04 var(--serifa); letter-spacing: -.02
 .rodape { position: relative; overflow: hidden; margin-top: 56px; padding: 44px var(--lado) calc(110px + env(safe-area-inset-bottom)); background: var(--mata); color: rgba(255, 255, 255, .7); border-radius: var(--raio) var(--raio) 0 0; display: grid; gap: 6px; justify-items: center; text-align: center; font-size: 13.5px; }
 .rodape > span:not(.rodape-fundo) { position: relative; }
 .rodape #rodape-nome { color: #fff; font: 600 12px/1 var(--texto); letter-spacing: .22em; }
+/* Assinatura M1L! | RTJ: padrão dos sites da Mil e Uma Linhas! (M1L! cromada, uma barra e o RTJ vivo de assinatura.js) */
+.assina { margin-top: 18px; }
+.assina-link { display: inline-flex; align-items: center; gap: 14px; padding: 6px 4px; text-decoration: none; border-radius: 12px; }
+.assina-cromo { display: block; height: 40px; width: auto; }
+.assina-rtj { display: flex; align-items: center; height: 32px; padding-left: 14px; border-left: 1px solid rgba(255, 255, 255, .22); }
+.assina-rtj img { display: block; height: 26px; width: auto; }
+.rtj-vivo { position: relative; display: inline-block; line-height: 0; touch-action: pan-y; }
+.rtj-vivo canvas { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-mask: url("marca/rtj.svg") center / 100% 100% no-repeat; mask: url("marca/rtj.svg") center / 100% 100% no-repeat; }
+.rtj-vivo.rtj-on img { visibility: hidden; }
 .rodape-fundo { position: absolute; left: 50%; bottom: -0.2em; transform: translateX(-50%); white-space: nowrap; font: 500 clamp(64px, 22vw, 240px)/1 var(--serifa); letter-spacing: -.03em; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, .09); pointer-events: none; }
 
 .flutua { position: fixed; z-index: 35; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 22px; border-radius: 999px; background: var(--verde); color: var(--obs); text-decoration: none; white-space: nowrap; box-shadow: 0 10px 30px rgba(21, 25, 20, .3); animation: sobe-botao .6s var(--solta) both; }

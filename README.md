@@ -33,6 +33,7 @@ Eu, Rodrigo Jr, fiz esta página pela [Mil e Uma Linhas!](https://mileumalinhas.
 | `fotos/` | Fotos das peças, recortadas sem mostrar o rosto de ninguém. |
 | `video/` | O vídeo de tecido que fica no fundo do catálogo, com uma imagem parada para quem pede menos movimento. |
 | `fonte/` | As duas fontes usadas (Playfair Display e Inter, licença OFL). |
+| `assinatura.js` e `marca/` | A assinatura M1L! \| RTJ do rodapé, padrão dos sites da Mil e Uma Linhas!. O RTJ se mexe quando o aparelho permite; senão fica a imagem parada. |
 | `CNAME` | Diz ao GitHub Pages qual é o domínio da página. |
 
 ## Privacidade

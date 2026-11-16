@@ -241,6 +241,8 @@ h1 { font: 500 clamp(31px, 9.4vw, 76px)/1.04 var(--serifa); letter-spacing: -.02
 .rtj-vivo { position: relative; display: inline-block; line-height: 0; touch-action: pan-y; }
 .rtj-vivo canvas { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-mask: url("marca/rtj.svg") center / 100% 100% no-repeat; mask: url("marca/rtj.svg") center / 100% 100% no-repeat; }
 .rtj-vivo.rtj-on img { visibility: hidden; }
+/* no computador a assinatura sobe para o canto de cima, à esquerda do rodapé */
+@media (min-width: 900px) { .rodape > span.assina { position: absolute; left: 32px; top: 30px; margin: 0; } }
 .rodape-fundo { position: absolute; left: 50%; bottom: -0.2em; transform: translateX(-50%); white-space: nowrap; font: 500 clamp(64px, 22vw, 240px)/1 var(--serifa); letter-spacing: -.03em; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, .09); pointer-events: none; }
 
 .flutua { position: fixed; z-index: 35; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 22px; border-radius: 999px; background: var(--verde); color: var(--obs); text-decoration: none; white-space: nowrap; box-shadow: 0 10px 30px rgba(21, 25, 20, .3); animation: sobe-botao .6s var(--solta) both; }

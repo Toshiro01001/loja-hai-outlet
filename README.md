@@ -43,7 +43,7 @@ A página não tem cadastro, não usa cookies, não conta visitas e não guarda 
 ## Para trocar uma peça do catálogo
 
 1. Coloque a foto em `fotos/`, em WebP, na proporção 4 por 5.
-2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` masculino). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.
+2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` camisetas e regatas masculinas, `p` polos, `s` bermudas e shorts). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.
 
 ## Marcas, ofertas, preço e tamanho
 
@@ -66,3 +66,9 @@ Sem a lista de tamanhos, a ficha oferece PP, P, M, G e GG e avisa que a loja con
 ## Catálogo Hering
 
 São 25 peças masculinas da Hering, com preço e tamanhos tirados do catálogo em PDF da loja. As fotos são `fotos/h-01.webp` a `h-25.webp`, recortadas do pescoço para baixo, sem o rosto e sem os selos de preço da arte original. As peças estão no fim da lista `catalogo` de `dados.js`, com `marca: 'hering'`, `por` (valor de venda) e `tamanhos`. O catálogo não traz código de peça nem valor normal, então esses campos ficam de fora e a peça não entra em Ofertas. Para mexer em um preço ou tamanho, é só editar a linha da peça.
+
+No Catálogo Hering, as peças se dividem em Camisetas e regatas, Polos e Bermudas e shorts. Com a marca escolhida, os números dos filtros contam só as peças dela. A peça que só existe em um tamanho já abre com ele escolhido, e a mensagem do WhatsApp leva o nome, o tamanho e o preço. Cada peça tem um endereço próprio para mandar a alguém (por exemplo `#peca-h-01`).
+
+## Teste
+
+Com a pasta servida em `http://localhost:8311/` (`python3 -m http.server 8311`), rode `node tests/catalogo.cjs`. Ele confere o catálogo no computador, no iPhone 13, em 320 px e com "reduzir movimento".

@@ -356,11 +356,14 @@
   function tamanhosDe(p) { if (!p.tamanhos) return TAM.slice(); var ordem = TAM.concat(L.tamanhosMais || []); function pos(t) { var i = ordem.indexOf(t); return i < 0 ? 999 : i; } return Object.keys(p.tamanhos).sort(function (a, b) { return pos(a) - pos(b); }); }
   function temTamanho(p, t) { return !p.tamanhos || !!p.tamanhos[t]; }
   function esgotada(p) { return !!p.tamanhos && tamanhosDe(p).length > 0 && !tamanhosDe(p).some(function (t) { return p.tamanhos[t]; }); }
-  /* como a peça é escrita na mensagem do WhatsApp: nome, código e o tamanho que a pessoa escolheu */
-  function textoPeca(p) { return p.legenda + (p.codigo ? ' (código ' + p.codigo + ')' : '') + (p.escolha ? ', tamanho ' + p.escolha : ''); }
+  /* como a peça é escrita na mensagem do WhatsApp: nome, código, o tamanho que a pessoa escolheu e o preço que ela viu (é o que separa duas peças de mesmo nome) */
+  function textoPeca(p) { return p.legenda + (p.codigo ? ' (código ' + p.codigo + ')' : '') + (p.escolha ? ', tamanho ' + p.escolha : '') + (temPreco(p) ? ', ' + real(p.por) : ''); }
   /* o grupo da peça vem dela mesma (campo "grupo") ou, se ela não disser, do tipo a que pertence */
   function grupoDe(p) { return p.grupo || grupoDoTipo[p.tipo] || ''; }
-  CAT.forEach(function (p) { p.id = (p.arquivo.match(/(\d+)\.\w+$/) || [0, ''])[1]; });
+  /* a peça passa pelo filtro de marca? Sem marca escolhida, todas passam. */
+  function daMarca(p) { return !marca || p.marca === marca; }
+  /* cada peça tem um endereço próprio (#peca-49). O número vem do nome do arquivo; as fotos antigas (c-49) guardam só o número, para os links já enviados continuarem valendo, e as demais levam o nome inteiro (h-01), para duas peças nunca dividirem o mesmo endereço. */
+  CAT.forEach(function (p) { p.id = ((p.arquivo.match(/([^\/]+)\.\w+$/) || [0, ''])[1]).replace(/^c-/, ''); });
   /* mural do topo: colunas com fotos de peças da loja que sobem e descem devagar atrás do título, escurecidas para o texto continuar legível.
      Usa as mesmas fotos do catálogo (nada novo para baixar depois), anda só por transformação e para quando o topo sai da tela. Com "reduzir movimento", fica parado. */
   (function () {
@@ -435,6 +438,9 @@
     var cx = $('p-tam'), ts = tamanhosDe(p), fim = esgotada(p); cx.textContent = '';
     $('p-tam-bloco').hidden = !ts.length; if (!ts.length) return;
     if (p.escolha && (ts.indexOf(p.escolha) < 0 || !temTamanho(p, p.escolha))) p.escolha = '';
+    /* peça com um tamanho só: ele já vem escolhido na primeira vez (a pessoa ainda pode desmarcar) */
+    if (p.escolha === undefined && p.tamanhos && ts.length === 1 && temTamanho(p, ts[0])) p.escolha = ts[0];
+    var algumRiscado = !!p.tamanhos && ts.some(function (t) { return !p.tamanhos[t]; });
     ts.forEach(function (t) {
       var b = document.createElement('button'), tem = temTamanho(p, t);
       b.type = 'button'; b.className = 'tam'; b.textContent = t; b.disabled = !tem;
@@ -443,7 +449,7 @@
       b.addEventListener('click', function () { p.escolha = p.escolha === t ? '' : t; pintarTamanhos(p); ligarWhatsPeca(p); if (gostei.indexOf(p) >= 0) sacola(); });
       cx.appendChild(b);
     });
-    $('p-tam-nota').textContent = fim ? 'Esgotado em todos os tamanhos. Pergunte à loja quando volta.' : p.tamanhos ? (p.escolha ? 'Tamanho ' + p.escolha + ' disponível.' : 'Riscado é tamanho esgotado.') : 'A loja confirma na conversa se tem o seu tamanho.';
+    $('p-tam-nota').textContent = fim ? 'Esgotado em todos os tamanhos. Pergunte à loja quando volta.' : p.tamanhos ? (p.escolha ? 'Tamanho ' + p.escolha + ' disponível.' : algumRiscado ? 'Riscado é tamanho esgotado.' : ts.length === 1 ? 'Disponível só neste tamanho.' : 'Estes são os tamanhos disponíveis. Toque em um para pedir.') : 'A loja confirma na conversa se tem o seu tamanho.';
   }
   function ligarWhatsPeca(p) {
     $('p-whats').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemPeca || '') + textoPeca(p) + '.');
@@ -567,23 +573,34 @@
   /* segunda fileira: os tipos de peça dentro do grupo escolhido. Só aparece quando o grupo tem mais de um tipo. */
   function pintarTipos() {
     subchips.textContent = ''; filtro = '';
-    var doGrupo = TIPOS.filter(function (t) { return grupo && grupo !== '*' && CAT.some(function (p) { return p.tipo === t[0] && grupoDe(p) === grupo; }); });
+    var doGrupo = TIPOS.filter(function (t) { return grupo && grupo !== '*' && CAT.some(function (p) { return daMarca(p) && p.tipo === t[0] && grupoDe(p) === grupo; }); });
     subchips.hidden = doGrupo.length < 2; if (subchips.hidden) return;
-    chip(subchips, 'Todos', CAT.filter(function (p) { return grupoDe(p) === grupo; }).length, true, function () { filtro = ''; });
-    doGrupo.forEach(function (t) { chip(subchips, t[1], CAT.filter(function (p) { return p.tipo === t[0] && grupoDe(p) === grupo; }).length, false, function () { filtro = t[0]; }); });
+    chip(subchips, 'Todos', CAT.filter(function (p) { return daMarca(p) && grupoDe(p) === grupo; }).length, true, function () { filtro = ''; });
+    doGrupo.forEach(function (t) { chip(subchips, t[1], CAT.filter(function (p) { return daMarca(p) && p.tipo === t[0] && grupoDe(p) === grupo; }).length, false, function () { filtro = t[0]; }); });
+  }
+  /* ao trocar de marca, os números dos grupos passam a contar só as peças dela, e o grupo que ficar vazio some. Se o grupo aberto ficou vazio, volta para Tudo. */
+  function contarGrupos() {
+    var vazio = false;
+    [].forEach.call(chips.children, function (c, k) {
+      var g = c.getAttribute('data-grupo'), n; if (c === chipLista) return;
+      if (k === 0) n = CAT.filter(daMarca).length; else if (g === null) return; else n = CAT.filter(function (p) { return daMarca(p) && grupoDe(p) === g; }).length;
+      c.lastChild.textContent = n; if (k > 0) { c.hidden = !n; if (!n && grupo === g) vazio = true; }
+    });
+    if (vazio) { grupo = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); }
+    pintarTipos();
   }
   function escolherGrupo(g) { return function () { grupo = g; pintarTipos(); }; }
   if (CAT.length) {
     chip(chips, 'Tudo', CAT.length, true, escolherGrupo(''));
-    if (GRUPOS.length) GRUPOS.forEach(function (g) { var n = CAT.filter(function (p) { return grupoDe(p) === g[0]; }).length; if (n) chip(chips, g[1], n, false, escolherGrupo(g[0])); });
+    if (GRUPOS.length) GRUPOS.forEach(function (g) { var n = CAT.filter(function (p) { return grupoDe(p) === g[0]; }).length; if (n) chip(chips, g[1], n, false, escolherGrupo(g[0])).setAttribute('data-grupo', g[0]); });
     else TIPOS.forEach(function (t) { var n = CAT.filter(function (p) { return p.tipo === t[0]; }).length; if (n) chip(chips, t[1], n, false, function () { grupo = ''; filtro = t[0]; }); });
     chipLista = chip(chips, 'Minha lista', 0, false, escolherGrupo('*')); chipLista.hidden = true; chipLista.classList.add('chip-lista');
     /* fileira de marcas: só aparece quando alguma peça tem marca informada */
     var comMarca = MARCAS.filter(function (m) { return CAT.some(function (p) { return p.marca === m[0]; }); });
     if (comMarca.length) {
       $('marcas').hidden = false;
-      chip($('marcas'), 'Todas as marcas', CAT.length, true, function () { marca = ''; });
-      comMarca.forEach(function (m) { var cm = chip($('marcas'), nomeCat[m[0]] || m[1], CAT.filter(function (p) { return p.marca === m[0]; }).length, false, function () { marca = m[0]; }); cm.setAttribute('data-marca', m[0]); });
+      chip($('marcas'), 'Todas as marcas', CAT.length, true, function () { marca = ''; contarGrupos(); });
+      comMarca.forEach(function (m) { var cm = chip($('marcas'), nomeCat[m[0]] || m[1], CAT.filter(function (p) { return p.marca === m[0]; }).length, false, function () { marca = m[0]; contarGrupos(); }); cm.setAttribute('data-marca', m[0]); });
     }
     var esperaBusca = 0;
     $('busca').addEventListener('input', function () { termo = $('busca').value; clearTimeout(esperaBusca); esperaBusca = setTimeout(repintar, 140); });
@@ -626,7 +643,7 @@
 
   /* duas vistas na mesma página: Início e Catálogo. O endereço ganha #catalogo, então o botão de voltar do celular funciona e dá para mandar o link direto do catálogo.
      Cada peça também tem o seu endereço (#peca-49): quem recebe o link cai direto na foto dela. */
-  function marcarMarca(m) { marca = m; [].forEach.call($('marcas').children, function (c, k) { c.setAttribute('aria-pressed', (m ? c.getAttribute('data-marca') === m : k === 0) ? 'true' : 'false'); }); }
+  function marcarMarca(m) { marca = m; [].forEach.call($('marcas').children, function (c, k) { c.setAttribute('aria-pressed', (m ? c.getAttribute('data-marca') === m : k === 0) ? 'true' : 'false'); }); contarGrupos(); }
   function trocar(qual, emOfertas) {
     var aba = qual === 'catalogo' && emOfertas ? 'ofertas' : qual, mudouModo = ofertas !== !!emOfertas;
     ofertas = !!emOfertas;

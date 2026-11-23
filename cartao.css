@@ -666,7 +666,9 @@ body.com-folha { overscroll-behavior-y: none; }
 @media (min-width: 760px) { .marca-cartao { grid-template-columns: 1fr auto; } .marca-cartao .acao { justify-self: end; } }
 @media (max-width: 380px) { .abas a { min-width: 0; padding: 0 9px; font-size: 13px; } }
 /* menu com quatro abas: no celular, "Catálogo Hering" ocupa duas linhas para caber sem apertar as outras */
-@media (max-width: 559px) { .abas.com-marca { flex: none; } .abas.com-marca a { padding: 0 10px; font-size: 13px; } .abas.com-marca #aba-marca { max-width: 78px; font-size: 12.5px; } .barra:has(.com-marca) .barra-estado span { display: none; } .barra:has(.com-marca) .barra-estado { padding: 0 10px 0 2px; } }
+@media (max-width: 559px) { .abas.com-marca { flex: none; } .abas.com-marca a { padding: 0 10px; font-size: 13px; } .abas.com-marca #aba-marca { max-width: 78px; font-size: 12.5px; } .barra:has(.com-marca) .barra-estado span { display: none; } .barra:has(.com-marca) .barra-estado { padding: 0 14px 0 12px; } }
+/* o ponto de aberta/fechada fica com folga das abas, no celular e no computador: a mesma distância dos dois lados no celular, e um respiro mínimo quando o texto aparece */
+@media (min-width: 560px) { .barra:has(.com-marca) .barra-estado { margin-left: 10px; padding: 0 14px 0 6px; } }
 /* até 384 px não sobra lugar para a logo ao lado das quatro abas: ela sai do menu (continua no topo da página) e as abas ficam no centro */
 @media (max-width: 384px) { .barra:has(.com-marca) .barra-marca { display: none; } .barra:has(.com-marca) { justify-content: center; gap: 4px; } }
 @media (max-width: 380px) { .abas.com-marca a { padding: 0 7px; font-size: 12.5px; } .abas.com-marca #aba-marca { max-width: 64px; font-size: 11.5px; } }

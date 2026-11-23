@@ -45,9 +45,13 @@ h2 { font: 500 clamp(30px, 8vw, 44px)/1.08 var(--serifa); letter-spacing: -.01em
 .abas { position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; background: rgba(255, 255, 255, .06); border-radius: 999px; padding: 3px; }
 .abas a { position: relative; z-index: 1; min-width: 86px; min-height: 44px; display: grid; place-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; text-decoration: none; color: rgba(255, 255, 255, .72); border-radius: 999px; transition: color .3s; }
 .abas a[aria-current] { color: var(--obs); }
-.abas-marca { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 999px; background: var(--verde); transition: transform .55s var(--solta); }
-body[data-aba="catalogo"] .abas-marca { transform: translateX(100%); }
-body[data-aba="ofertas"] .abas-marca { transform: translateX(200%); }
+.abas-marca { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 999px; background: var(--verde); transition: transform .55s var(--solta), width .55s var(--solta); }
+/* com as abas medidas pelo programa, a pílula verde segue a posição e a largura da aba aberta (as abas deixam de ter a mesma largura quando entra o catálogo da marca) */
+.abas.medida .abas-marca { left: 0; width: var(--aba-l); transform: translateX(var(--aba-x)); }
+.abas.com-marca { grid-template-columns: auto auto auto auto; }
+.abas.com-marca a { min-width: 0; padding: 0 13px; text-align: center; line-height: 1.12; }
+body[data-aba="catalogo"] .abas:not(.medida) .abas-marca { transform: translateX(100%); }
+body[data-aba="ofertas"] .abas:not(.medida) .abas-marca { transform: translateX(200%); }
 .barra-estado { display: flex; align-items: center; gap: 6px; padding: 0 12px 0 4px; font-size: 12.5px; font-weight: 500; white-space: nowrap; color: rgba(255, 255, 255, .86); }
 .ponto { width: 8px; height: 8px; border-radius: 50%; background: #d08a6a; flex: none; }
 .aberta .ponto { background: var(--verde); box-shadow: 0 0 0 0 rgba(164, 207, 69, .6); animation: pulsa 2.4s infinite; }
@@ -661,6 +665,13 @@ body.com-folha { overscroll-behavior-y: none; }
 .marca-cartao .acao { justify-self: start; }
 @media (min-width: 760px) { .marca-cartao { grid-template-columns: 1fr auto; } .marca-cartao .acao { justify-self: end; } }
 @media (max-width: 380px) { .abas a { min-width: 0; padding: 0 9px; font-size: 13px; } }
+/* menu com quatro abas: no celular, "Catálogo Hering" ocupa duas linhas para caber sem apertar as outras */
+@media (max-width: 559px) { .abas.com-marca { flex: none; } .abas.com-marca a { padding: 0 10px; font-size: 13px; } .abas.com-marca #aba-marca { max-width: 78px; font-size: 12.5px; } .barra:has(.com-marca) .barra-estado span { display: none; } .barra:has(.com-marca) .barra-estado { padding: 0 10px 0 2px; } }
+/* até 384 px não sobra lugar para a logo ao lado das quatro abas: ela sai do menu (continua no topo da página) e as abas ficam no centro */
+@media (max-width: 384px) { .barra:has(.com-marca) .barra-marca { display: none; } .barra:has(.com-marca) { justify-content: center; gap: 4px; } }
+@media (max-width: 380px) { .abas.com-marca a { padding: 0 7px; font-size: 12.5px; } .abas.com-marca #aba-marca { max-width: 64px; font-size: 11.5px; } }
+@media (min-width: 560px) and (max-width: 759px) { .barra:has(.com-marca) .barra-marca b { display: none; } }
+@media (min-width: 760px) { .barra:has(.com-marca) { width: min(calc(100% - 40px), 760px); } }
 /* a ficha ganhou código, preço e tamanhos: a foto mantém a altura dela e a folha rola quando não couber */
 .folha-peca { grid-auto-rows: max-content; gap: 10px; }
 .folha-peca .peca-grande { max-height: 40dvh; width: auto; height: 40dvh; }

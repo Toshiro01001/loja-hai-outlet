@@ -27,8 +27,9 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     await pg.locator('#b-marca').click(); await pg.waitForTimeout(1200);
     ok((await pg.locator('#cat-conta').textContent()).startsWith('25 peças da Hering'), 'contagem do Catálogo Hering');
     const grupos = await pg.locator('#chips button:visible').allTextContents();
+    ok((await pg.evaluate(() => location.hash)) === '#catalogo-hering', 'o botão do início abre #catalogo-hering');
     ok(grupos.join('|') === 'Tudo25|Masculino25', 'com a marca escolhida, os grupos contam só as peças dela (veio ' + grupos.join('|') + ')');
-    await pg.locator('#chips button', { hasText: 'Masculino' }).click(); await pg.waitForTimeout(700);
+    ok((await pg.locator('#chips button', { hasText: 'Masculino' }).getAttribute('aria-pressed')) === 'true', 'grupo único já aberto');
     const tipos = await pg.locator('#subchips button').allTextContents();
     ok(tipos.join('|') === 'Todos25|Camisetas e regatas13|Polos7|Bermudas e shorts5', 'tipos dentro do Masculino (veio ' + tipos.join('|') + ')');
     await pg.locator('#subchips button', { hasText: 'Polos' }).click(); await pg.waitForTimeout(700);
@@ -40,10 +41,28 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     const zap = decodeURIComponent(await pg.locator('#p-whats').getAttribute('href'));
     ok(zap.includes('Short azul-claro com cordão, tamanho G, R$ 89,99.'), 'mensagem do WhatsApp com tamanho e preço (veio ' + zap.split('text=')[1] + ')');
     ok(!(await pg.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)), 'sem rolagem para o lado');
-    /* 4. voltar para todas as marcas devolve os grupos */
-    await pg.keyboard.press('Escape'); await pg.waitForTimeout(600);
-    await pg.locator('#marcas button').first().click(); await pg.waitForTimeout(700);
-    ok((await pg.locator('#chips button:visible').allTextContents()).join('|').startsWith('Tudo69|Feminino'), 'todas as marcas devolve os grupos');
+    /* 4. aba própria: fechar a peça continua no Catálogo Hering; o catálogo geral segue inteiro; Ofertas e Início seguem funcionando */
+    await pg.keyboard.press('Escape'); await pg.waitForTimeout(700);
+    ok((await pg.evaluate(() => location.hash)) === '#catalogo-hering', 'fechar a peça volta para #catalogo-hering');
+    ok((await pg.locator('#aba-marca').getAttribute('aria-current')) === 'page', 'aba Catálogo Hering marcada');
+    ok((await pg.locator('#t-cat').textContent()) === 'Catálogo Hering', 'título da tela');
+    ok(!(await pg.locator('#marcas').isVisible()), 'fileira de marcas escondida no catálogo da marca');
+    const pil = await pg.evaluate(() => { const a = document.querySelector('.abas a[aria-current]').getBoundingClientRect(), p = document.querySelector('.abas-marca').getBoundingClientRect(); return Math.abs(a.left - p.left) < 2 && Math.abs(a.width - p.width) < 2; });
+    ok(pil, 'pílula verde embaixo da aba aberta');
+    ok(!(await pg.evaluate(() => { const r = document.getElementById('barra').getBoundingClientRect(); return [...document.querySelectorAll('#barra a')].some(e => e.offsetWidth && (e.getBoundingClientRect().right > r.right + 1 || e.scrollWidth > e.clientWidth + 1)); })), 'abas cabem no menu');
+    await pg.locator('#aba-catalogo').click(); await pg.waitForTimeout(1300);
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('69 peças'), 'catálogo geral com as 69 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
+    ok(await pg.locator('#marcas').isVisible(), 'fileira de marcas de volta no catálogo geral');
+    ok((await pg.locator('#chips button:visible').allTextContents()).join('|').startsWith('Tudo69|Feminino'), 'grupos do catálogo geral');
+    ok((await pg.locator('#t-cat').textContent()) === 'Catálogo', 'título do catálogo geral');
+    await pg.locator('#aba-ofertas').click(); await pg.waitForTimeout(1300);
+    ok((await pg.locator('#t-cat').textContent()) === 'Ofertas', 'tela Ofertas');
+    await pg.locator('#aba-marca').click(); await pg.waitForTimeout(1300);
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('25 peças da Hering'), 'volta ao Catálogo Hering pela aba');
+    await pg.goBack(); await pg.waitForTimeout(1300);
+    ok((await pg.locator('#t-cat').textContent()) === 'Ofertas', 'botão de voltar do aparelho');
+    await pg.locator('#aba-inicio').click(); await pg.waitForTimeout(1000);
+    ok(await pg.locator('#inicio').isVisible(), 'Início');
     ok(!erros.length, 'erros no console: ' + erros.join(' / '));
     await ctx.close();
   }

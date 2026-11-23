@@ -236,7 +236,7 @@
   $('f-salvar').href = L.contato; $('f-salvar').setAttribute('download', 'contato-da-loja.vcf');
   function mostrar(qual, foco) { if (aberta) aberta.hidden = true; else antes = document.activeElement; aberta = qual; qual.hidden = false; veu.hidden = false; document.body.classList.add('com-folha'); flutuar(); foco.focus(); }
   function abrir() { mostrar(folha, $('f-salvar')); }
-  function fechar() { if (!aberta) return; if (aberta === folhaPeca && location.hash.indexOf('#peca-') === 0 && history.replaceState) history.replaceState(null, '', ofertas ? '#ofertas' : '#catalogo'); aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); flutuar(); if (antes && antes.focus) antes.focus(); }
+  function fechar() { if (!aberta) return; if (aberta === folhaPeca && location.hash.indexOf('#peca-') === 0 && history.replaceState) history.replaceState(null, '', ofertas ? '#ofertas' : soMarca ? HM : '#catalogo'); aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); flutuar(); if (antes && antes.focus) antes.focus(); }
   /* no celular, as folhas descem com o dedo: arrastar para baixo acompanha o movimento e, passando de um terço da folha ou com um puxão rápido, fecha.
      Enquanto uma folha está aberta, o gesto não chega ao navegador, então puxar para baixo não recarrega mais a página. */
   (function () {
@@ -342,7 +342,7 @@
   /* catálogo: todas as peças em grade, com busca, filtro por tipo e a lista de quem visita.
      Tocar numa peça abre a foto grande; dali dá para passar para a próxima, guardar na lista, mostrar a alguém ou perguntar no WhatsApp.
      A lista vive só na memória desta tela: nada é gravado no aparelho nem enviado; some ao fechar a página. */
-  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, GRUPOS = L.grupos || [], nomeGrupo = {}, grupoDoTipo = {}, grupo = '', filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), subchips = $('subchips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null, MARCAS = L.marcas || [], nomeMarca = {}, marca = '', ofertas = false, TAM = L.tamanhos || [];
+  var CAT = L.catalogo || [], TIPOS = L.tipos || [], nomeTipo = {}, GRUPOS = L.grupos || [], nomeGrupo = {}, grupoDoTipo = {}, grupo = '', filtro = '', termo = '', gradeCat = $('cat-grade'), chips = $('chips'), subchips = $('subchips'), lista = [], atual = -1, gostei = [], pintado = false, chipLista = null, MARCAS = L.marcas || [], nomeMarca = {}, marca = '', ofertas = false, soMarca = '', TAM = L.tamanhos || [];
   var CORACAO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.400-7-9.600A4 4 0 0 1 12 8a4 4 0 0 1 7 2.400C19 15.600 12 20 12 20z"/></svg>';
   TIPOS.forEach(function (t) { nomeTipo[t[0]] = t[1]; grupoDoTipo[t[0]] = t[2] || ''; });
   GRUPOS.forEach(function (g) { nomeGrupo[g[0]] = g[1]; });
@@ -644,41 +644,56 @@
   /* duas vistas na mesma página: Início e Catálogo. O endereço ganha #catalogo, então o botão de voltar do celular funciona e dá para mandar o link direto do catálogo.
      Cada peça também tem o seu endereço (#peca-49): quem recebe o link cai direto na foto dela. */
   function marcarMarca(m) { marca = m; [].forEach.call($('marcas').children, function (c, k) { c.setAttribute('aria-pressed', (m ? c.getAttribute('data-marca') === m : k === 0) ? 'true' : 'false'); }); contarGrupos(); }
-  function trocar(qual, emOfertas) {
-    var aba = qual === 'catalogo' && emOfertas ? 'ofertas' : qual, mudouModo = ofertas !== !!emOfertas;
-    ofertas = !!emOfertas;
-    /* ao entrar ou sair de Ofertas, os filtros voltam ao começo: quem toca em Ofertas quer ver todas */
-    if (mudouModo && CAT.length) { marcarMarca(''); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos(); }
+  /* a pílula verde do menu vai para baixo da aba aberta. Como as abas têm larguras diferentes, a posição e a largura são medidas na hora. */
+  function moverPilula() { var a = document.querySelector('.abas a[aria-current]'), n = a && a.parentNode; if (!a || !a.offsetWidth) return; n.style.setProperty('--aba-x', a.offsetLeft + 'px'); n.style.setProperty('--aba-l', a.offsetWidth + 'px'); n.classList.add('medida'); }
+  addEventListener('resize', moverPilula); if (document.fonts && document.fonts.ready) document.fonts.ready.then(moverPilula);
+  function trocar(qual, emOfertas, fixa) {
+    fixa = qual === 'catalogo' && !emOfertas && fixa ? fixa : '';
+    var aba = qual === 'catalogo' ? (emOfertas ? 'ofertas' : fixa ? 'marca' : 'catalogo') : qual, mudouModo = ofertas !== !!emOfertas || soMarca !== fixa;
+    ofertas = !!emOfertas; soMarca = fixa;
+    /* ao entrar ou sair de Ofertas ou do catálogo de uma marca, os filtros voltam ao começo: quem toca em Ofertas quer ver todas */
+    if (mudouModo && CAT.length) {
+      marcarMarca(soMarca); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos();
+      /* no catálogo da marca, a fileira de marcas some (só há uma) e, se as peças são todas de um grupo, ele já vem aberto para os tipos aparecerem */
+      if ($('marcas').children.length) $('marcas').hidden = !!soMarca;
+      if (soMarca) { var unicos = [].filter.call(chips.children, function (c) { return c.getAttribute('data-grupo') !== null && !c.hidden; }); if (unicos.length === 1) { grupo = unicos[0].getAttribute('data-grupo'); [].forEach.call(chips.children, function (c) { c.setAttribute('aria-pressed', c === unicos[0] ? 'true' : 'false'); }); pintarTipos(); } }
+    }
     document.body.setAttribute('data-vista', qual); document.body.setAttribute('data-aba', aba);
     $('inicio').hidden = qual !== 'inicio'; $('catalogo').hidden = qual !== 'catalogo';
-    ['inicio', 'catalogo', 'ofertas'].forEach(function (n) { if (n === aba) $('aba-' + n).setAttribute('aria-current', 'page'); else $('aba-' + n).removeAttribute('aria-current'); });
+    ['inicio', 'catalogo', 'marca', 'ofertas'].forEach(function (n) { if (n === aba) $('aba-' + n).setAttribute('aria-current', 'page'); else $('aba-' + n).removeAttribute('aria-current'); });
+    moverPilula();
     if (qual === 'catalogo') {
       $('cat-apoio').textContent = ofertas ? 'Peças com preço reduzido. O valor riscado é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
       if (!pintado || mudouModo) { pintado = true; pintarCatalogo(); }
     }
     scrollTo(0, 0); sacola(); ligarSeda(qual === 'catalogo');
-    if (qual === 'catalogo') { embaralha($('t-cat'), ofertas ? 'Ofertas' : 'Catálogo'); if (luzX < -900) apontar(innerWidth * .7, innerHeight * .3); setTimeout(focar, 700); }
+    if (qual === 'catalogo') { embaralha($('t-cat'), ofertas ? 'Ofertas' : soMarca ? (nomeCat[soMarca] || nomeMarca[soMarca]) : 'Catálogo'); if (luzX < -900) apontar(innerWidth * .7, innerHeight * .3); setTimeout(focar, 700); }
   }
+  /* catálogo da marca em destaque: uma aba própria no menu (por exemplo "Catálogo Hering"), só com as peças dela. Só existe quando a marca tem nome de catálogo e peças. */
+  var MD = L.marcaDestaque && nomeCat[L.marcaDestaque] && CAT.some(function (p) { return p.marca === L.marcaDestaque; }) ? L.marcaDestaque : '', HM = MD ? '#catalogo-' + MD : '';
+  if (MD) { var am = $('aba-marca'); am.href = HM; am.textContent = nomeCat[MD]; am.hidden = false; am.parentNode.classList.add('com-marca'); }
   function pecaDoEndereco(h) { var id = h.indexOf('#peca-') === 0 ? h.slice(6) : '', p = null; CAT.forEach(function (c) { if (id && c.id === id) p = c; }); return p; }
   function vista(primeira) {
-    var h = location.hash, peca = pecaDoEndereco(h), qual = CAT.length && (h === '#catalogo' || h === '#ofertas' || h.indexOf('#peca-') === 0) ? 'catalogo' : 'inicio';
+    var h = location.hash, peca = pecaDoEndereco(h), qual = CAT.length && (h === '#catalogo' || h === '#ofertas' || (HM && h === HM) || h.indexOf('#peca-') === 0) ? 'catalogo' : 'inicio';
     /* abrir uma peça não muda de tela: quem estava em Ofertas continua em Ofertas */
     var emOfertas = qual === 'catalogo' && (h === '#ofertas' || (!!peca && ofertas && document.body.getAttribute('data-vista') === 'catalogo'));
-    if (qual === document.body.getAttribute('data-vista') && emOfertas === ofertas && !primeira) {
+    /* o catálogo da marca é uma tela própria (#catalogo-hering); abrir uma peça dentro dele também não muda de tela */
+    var fixa = qual === 'catalogo' && !emOfertas && HM && (h === HM || (!!peca && !!soMarca && document.body.getAttribute('data-vista') === 'catalogo')) ? MD : '';
+    if (qual === document.body.getAttribute('data-vista') && emOfertas === ofertas && fixa === soMarca && !primeira) {
       if (peca) { verPeca(peca); return; }
-      if (h === '#inicio' || h === '#catalogo' || h === '#ofertas') { if (aberta) fechar(); scrollTo({ top: 0, behavior: calmo ? 'auto' : 'smooth' }); }
+      if (h === '#inicio' || h === '#catalogo' || h === '#ofertas' || h === HM) { if (aberta) fechar(); scrollTo({ top: 0, behavior: calmo ? 'auto' : 'smooth' }); }
       return;
     }
     if (aberta) { aberta.hidden = true; aberta = null; veu.hidden = true; document.body.classList.remove('com-folha'); }
-    if (primeira || calmo) { trocar(qual, emOfertas); if (peca) verPeca(peca); return; }
-    if (document.startViewTransition) { document.startViewTransition(function () { trocar(qual, emOfertas); if (peca) verPeca(peca); }); return; }
-    trocar(qual, emOfertas); var el = $(qual); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); if (peca) verPeca(peca);
+    if (primeira || calmo) { trocar(qual, emOfertas, fixa); if (peca) verPeca(peca); return; }
+    if (document.startViewTransition) { document.startViewTransition(function () { trocar(qual, emOfertas, fixa); if (peca) verPeca(peca); }); return; }
+    trocar(qual, emOfertas, fixa); var el = $(qual); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); if (peca) verPeca(peca);
   }
   addEventListener('hashchange', function () { vista(false); });
-  [].forEach.call(document.querySelectorAll('a[href="#inicio"], a[href="#catalogo"], a[href="#ofertas"]'), function (a) { a.addEventListener('click', function () { if (location.hash === a.getAttribute('href')) vista(false); }); });
+  [].forEach.call(document.querySelectorAll('a[href="#inicio"], a[href="#catalogo"], a[href="#ofertas"], #aba-marca, #b-marca'), function (a) { a.addEventListener('click', function () { if (location.hash === a.getAttribute('href')) vista(false); }); });
   /* grupo do WhatsApp: o botão só aparece com um link de convite válido em dados.js */
   if (/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+/.test(L.grupoWhats || '')) { var bg = $('b-grupo'); bg.href = L.grupoWhats; bg.target = '_blank'; bg.hidden = false; bg.setAttribute('aria-label', 'Entrar no grupo do WhatsApp da ' + nome); }
-  /* marca em destaque no início: aparece só quando há peças dela no catálogo, e o botão abre o catálogo já filtrado */
+  /* marca em destaque no início: aparece só quando há peças dela no catálogo, e o botão abre o catálogo dela */
   (function () {
     var m = L.marcaDestaque, n = m && nomeMarca[m] ? CAT.filter(function (p) { return p.marca === m; }).length : 0;
     if (!n) return;
@@ -686,6 +701,8 @@
     $('t-marca').textContent = (nomeCat[m] || nomeMarca[m]) + ' na ' + nome;
     $('marca-apoio').textContent = n + (n === 1 ? ' peça' : ' peças') + ' da ' + nomeMarca[m] + ' no catálogo, com tamanho e preço.';
     $('b-marca-texto').textContent = nomeCat[m] ? 'Abrir o ' + nomeCat[m] : 'Ver as peças ' + nomeMarca[m];
+    /* com aba própria, o botão abre o catálogo da marca; sem ela, abre o catálogo geral já filtrado */
+    if (m === MD) { $('b-marca').href = HM; return; }
     $('b-marca').addEventListener('click', function () { marcarMarca(m); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos(); if (pintado) pintarCatalogo(); if (location.hash === '#catalogo') vista(false); });
   })();
   vista(true);

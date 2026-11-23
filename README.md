@@ -47,7 +47,7 @@ A página não tem cadastro, não usa cookies, não conta visitas e não guarda 
 
 ## Marcas, ofertas, preço e tamanho
 
-O menu tem três telas: **Início**, **Catálogo** e **Ofertas**. Tudo é ligado pelos dados de `dados.js`, e cada recurso só aparece quando a loja informa o dado:
+O menu tem quatro telas: **Início**, **Catálogo**, **Catálogo Hering** e **Ofertas**. O Catálogo Hering (`#catalogo-hering`) mostra só as peças da marca; o Catálogo geral continua com todas. Essa aba aparece sozinha quando a marca de `marcaDestaque` tem nome de catálogo (o terceiro item em `marcas`) e peças. Tudo é ligado pelos dados de `dados.js`, e cada recurso só aparece quando a loja informa o dado:
 
 | Dado em `dados.js` | O que aparece |
 |---|---|

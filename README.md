@@ -54,9 +54,15 @@ O menu tem três telas: **Início**, **Catálogo** e **Ofertas**. Tudo é ligado
 | `grupoWhats` (link de convite) | Botão **Entrar no grupo do WhatsApp** no início |
 | `marca` na peça | Fileira de marcas no catálogo e o nome da marca na peça |
 | `marcaDestaque` | Bloco da marca no início, com atalho para o catálogo dela |
+| terceiro item de `marcas` (por exemplo `['hering', 'Hering', 'Catálogo Hering']`) | Nome do catálogo da marca: aparece no botão de filtro e no bloco do início |
+| `tamanhosMais` | Tamanhos a mais (XG, XXG, 42, 44, 46), mostrados só nas peças que os trazem em `tamanhos` |
 | `codigo` na peça | Código na ficha e na mensagem do WhatsApp |
 | `de` e `por` na peça | Valor normal riscado e valor de venda; a peça entra em **Ofertas**, da maior economia para a menor |
 | `tamanhos` na peça (`{ P: 1, M: 0 }`) | Botões de tamanho; `0` aparece riscado, como esgotado |
 | peça com `tipo: 'a'` | Grupo **Acessórios** no catálogo |
 
 Sem a lista de tamanhos, a ficha oferece PP, P, M, G e GG e avisa que a loja confirma na conversa. O tamanho escolhido e o código vão escritos na mensagem do WhatsApp. O site não tem ligação com o caixa da loja: disponível e esgotado valem pelo que foi informado por último. Os valores são informados pela loja.
+
+## Catálogo Hering
+
+São 25 peças masculinas da Hering, com preço e tamanhos tirados do catálogo em PDF da loja. As fotos são `fotos/h-01.webp` a `h-25.webp`, recortadas do pescoço para baixo, sem o rosto e sem os selos de preço da arte original. As peças estão no fim da lista `catalogo` de `dados.js`, com `marca: 'hering'`, `por` (valor de venda) e `tamanhos`. O catálogo não traz código de peça nem valor normal, então esses campos ficam de fora e a peça não entra em Ofertas. Para mexer em um preço ou tamanho, é só editar a linha da peça.

@@ -346,13 +346,14 @@
   var CORACAO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.400-7-9.600A4 4 0 0 1 12 8a4 4 0 0 1 7 2.400C19 15.600 12 20 12 20z"/></svg>';
   TIPOS.forEach(function (t) { nomeTipo[t[0]] = t[1]; grupoDoTipo[t[0]] = t[2] || ''; });
   GRUPOS.forEach(function (g) { nomeGrupo[g[0]] = g[1]; });
-  MARCAS.forEach(function (m) { nomeMarca[m[0]] = m[1]; });
+  var nomeCat = {}; MARCAS.forEach(function (m) { nomeMarca[m[0]] = m[1]; if (m[2]) nomeCat[m[0]] = m[2]; });
   /* preço, oferta e tamanhos: só existem quando a loja informa os dados da peça em dados.js */
   function real(v) { return 'R$ ' + (+v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
   function temPreco(p) { return typeof p.por === 'number' && p.por > 0; }
   function emOferta(p) { return temPreco(p) && typeof p.de === 'number' && p.de > p.por; }
   function desconto(p) { return emOferta(p) ? Math.round((1 - p.por / p.de) * 100) : 0; }
-  function tamanhosDe(p) { return p.tamanhos ? TAM.filter(function (t) { return t in p.tamanhos; }) : TAM.slice(); }
+  /* sem a lista da peça, valem os tamanhos de L.tamanhos. Com a lista, valem os que ela traz, na ordem de L.tamanhos e depois L.tamanhosMais (XG, XXG, 42...). */
+  function tamanhosDe(p) { if (!p.tamanhos) return TAM.slice(); var ordem = TAM.concat(L.tamanhosMais || []); function pos(t) { var i = ordem.indexOf(t); return i < 0 ? 999 : i; } return Object.keys(p.tamanhos).sort(function (a, b) { return pos(a) - pos(b); }); }
   function temTamanho(p, t) { return !p.tamanhos || !!p.tamanhos[t]; }
   function esgotada(p) { return !!p.tamanhos && tamanhosDe(p).length > 0 && !tamanhosDe(p).some(function (t) { return p.tamanhos[t]; }); }
   /* como a peça é escrita na mensagem do WhatsApp: nome, código e o tamanho que a pessoa escolheu */
@@ -582,7 +583,7 @@
     if (comMarca.length) {
       $('marcas').hidden = false;
       chip($('marcas'), 'Todas as marcas', CAT.length, true, function () { marca = ''; });
-      comMarca.forEach(function (m) { var cm = chip($('marcas'), m[1], CAT.filter(function (p) { return p.marca === m[0]; }).length, false, function () { marca = m[0]; }); cm.setAttribute('data-marca', m[0]); });
+      comMarca.forEach(function (m) { var cm = chip($('marcas'), nomeCat[m[0]] || m[1], CAT.filter(function (p) { return p.marca === m[0]; }).length, false, function () { marca = m[0]; }); cm.setAttribute('data-marca', m[0]); });
     }
     var esperaBusca = 0;
     $('busca').addEventListener('input', function () { termo = $('busca').value; clearTimeout(esperaBusca); esperaBusca = setTimeout(repintar, 140); });
@@ -665,9 +666,9 @@
     var m = L.marcaDestaque, n = m && nomeMarca[m] ? CAT.filter(function (p) { return p.marca === m; }).length : 0;
     if (!n) return;
     $('marca-destaque').hidden = false;
-    $('t-marca').textContent = nomeMarca[m] + ' na ' + nome;
+    $('t-marca').textContent = (nomeCat[m] || nomeMarca[m]) + ' na ' + nome;
     $('marca-apoio').textContent = n + (n === 1 ? ' peça' : ' peças') + ' da ' + nomeMarca[m] + ' no catálogo, com tamanho e preço.';
-    $('b-marca-texto').textContent = 'Ver as peças ' + nomeMarca[m];
+    $('b-marca-texto').textContent = nomeCat[m] ? 'Abrir o ' + nomeCat[m] : 'Ver as peças ' + nomeMarca[m];
     $('b-marca').addEventListener('click', function () { marcarMarca(m); grupo = ''; filtro = ''; [].forEach.call(chips.children, function (c, k) { c.setAttribute('aria-pressed', k === 0 ? 'true' : 'false'); }); pintarTipos(); if (pintado) pintarCatalogo(); if (location.hash === '#catalogo') vista(false); });
   })();
   vista(true);

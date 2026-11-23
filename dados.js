@@ -58,11 +58,14 @@ window.LOJA = {
   /* tipos de peça: código, nome e o grupo a que pertencem */
   tipos: [['v', 'Vestidos', 'f'], ['c', 'Conjuntos', 'f'], ['b', 'Blusas', 'f'], ['m', 'Masculino', 'm'], ['a', 'Acessórios', 'a']],
   /* marcas que a loja vende: código e nome. Uma marca sem nenhuma peça não é mostrada. */
-  marcas: [['hering', 'Hering']],
+  /* o terceiro item, quando existe, é o nome do catálogo da marca: aparece no botão de filtro e no início */
+  marcas: [['hering', 'Hering', 'Catálogo Hering']],
   /* marca que ganha um destaque no início, com atalho para o catálogo dela. Só aparece quando houver peça dessa marca. */
   marcaDestaque: 'hering',
   /* tamanhos que a pessoa pode escolher ao abrir uma peça, na ordem em que aparecem */
   tamanhos: ['PP', 'P', 'M', 'G', 'GG'],
+  /* tamanhos a mais, que só aparecem nas peças que os trazem na própria lista (ordem em que são mostrados) */
+  tamanhosMais: ['XG', 'XXG', '42', '44', '46'],
   /* O que cada peça pode ter além da foto, do nome e do tipo. Tudo é opcional e só aparece quando a loja informar:
        codigo: 'H1234'                      código da peça na loja
        marca: 'hering'                      um dos códigos da lista "marcas"
@@ -118,6 +121,32 @@ window.LOJA = {
     { arquivo: 'fotos/c-16.webp', grande: 'fotos/g/c-16.webp', legenda: 'Blusa cinza de gola alta', tipo: 'b' },
     { arquivo: 'fotos/c-33.webp', grande: 'fotos/g/c-33.webp', legenda: 'Camiseta preta', tipo: 'b' },
     { arquivo: 'fotos/c-20.webp', grande: 'fotos/g/c-20.webp', legenda: 'Jaqueta preta esportiva', tipo: 'b', grupo: 'x' },
-    { arquivo: 'fotos/c-46.webp', grande: 'fotos/g/c-46.webp', legenda: 'Colete jeans com cinto', tipo: 'b' }
+    { arquivo: 'fotos/c-46.webp', grande: 'fotos/g/c-46.webp', legenda: 'Colete jeans com cinto', tipo: 'b' },
+    /* Catálogo Hering (masculino): preço e tamanhos do catálogo em PDF da loja. Fotos recortadas do pescoço para baixo, sem o rosto. Sem código de peça informado. */
+    { arquivo: 'fotos/h-01.webp', legenda: 'Bermuda cargo cinza-escura', tipo: 'm', marca: 'hering', por: 149.99, tamanhos: { '42': 1, '46': 1 } },
+    { arquivo: 'fotos/h-02.webp', legenda: 'Bermuda cargo preta', tipo: 'm', marca: 'hering', por: 149.99, tamanhos: { '44': 1 } },
+    { arquivo: 'fotos/h-03.webp', legenda: 'Short azul-claro com cordão', tipo: 'm', marca: 'hering', por: 89.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/h-04.webp', legenda: 'Samba canção listrada com saquinho', tipo: 'm', marca: 'hering', por: 79.99, tamanhos: { XG: 1 } },
+    { arquivo: 'fotos/h-05.webp', legenda: 'Bermuda cinza com cordão', tipo: 'm', marca: 'hering', por: 139.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/h-06.webp', legenda: 'Polo cinza com frisos', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { M: 1, XG: 1 } },
+    { arquivo: 'fotos/h-07.webp', legenda: 'Polo amarelo-claro', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { M: 1, XXG: 1 } },
+    { arquivo: 'fotos/h-08.webp', legenda: 'Polo branca com frisos', tipo: 'm', marca: 'hering', por: 129.99, tamanhos: { P: 1, M: 1 } },
+    { arquivo: 'fotos/h-09.webp', legenda: 'Camiseta verde', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1, XG: 1 } },
+    { arquivo: 'fotos/h-10.webp', legenda: 'Camiseta azul-marinho com estampa', tipo: 'm', marca: 'hering', por: 59.99, tamanhos: { M: 1, XG: 1 } },
+    { arquivo: 'fotos/h-11.webp', legenda: 'Camiseta básica amarela', tipo: 'm', marca: 'hering', por: 59.99, tamanhos: { G: 1, XXG: 1 } },
+    { arquivo: 'fotos/h-12.webp', legenda: 'Camiseta básica vermelha', tipo: 'm', marca: 'hering', por: 59.99, tamanhos: { XG: 1, XXG: 1 } },
+    { arquivo: 'fotos/h-13.webp', legenda: 'Camiseta básica cinza', tipo: 'm', marca: 'hering', por: 68, tamanhos: { XXG: 1 } },
+    { arquivo: 'fotos/h-14.webp', legenda: 'Camiseta básica vermelha', tipo: 'm', marca: 'hering', por: 68, tamanhos: { XXG: 1 } },
+    { arquivo: 'fotos/h-15.webp', legenda: 'Camiseta básica azul-marinho', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/h-16.webp', legenda: 'Camiseta básica azul com bolso', tipo: 'm', marca: 'hering', por: 68, tamanhos: { M: 1, G: 1, XG: 1 } },
+    { arquivo: 'fotos/h-17.webp', legenda: 'Polo vermelha', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/h-18.webp', legenda: 'Polo branca com bolso', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/h-19.webp', legenda: 'Polo azul-clara', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/h-20.webp', legenda: 'Camiseta branca com folhagem', tipo: 'm', marca: 'hering', por: 68, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/h-21.webp', legenda: 'Camiseta branca estampada', tipo: 'm', marca: 'hering', por: 59.99, tamanhos: { XXG: 1 } },
+    { arquivo: 'fotos/h-22.webp', legenda: 'Camiseta laranja', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { XG: 1 } },
+    { arquivo: 'fotos/h-23.webp', legenda: 'Polo preta com frisos', tipo: 'm', marca: 'hering', por: 119.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/h-24.webp', legenda: 'Camiseta verde-oliva', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1, XG: 1 } },
+    { arquivo: 'fotos/h-25.webp', legenda: 'Camiseta verde-oliva gola V', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1 } }
   ]
 };

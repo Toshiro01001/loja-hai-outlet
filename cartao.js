@@ -350,8 +350,10 @@
   /* preço, oferta e tamanhos: só existem quando a loja informa os dados da peça em dados.js */
   function real(v) { return 'R$ ' + (+v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
   function temPreco(p) { return typeof p.por === 'number' && p.por > 0; }
-  function emOferta(p) { return temPreco(p) && typeof p.de === 'number' && p.de > p.por; }
-  function desconto(p) { return emOferta(p) ? Math.round((1 - p.por / p.de) * 100) : 0; }
+  /* a peça entra em Ofertas de dois jeitos: com valor normal riscado (de) maior que o de venda, ou marcada pela loja com oferta: true (promoção sem valor riscado) */
+  function temDe(p) { return temPreco(p) && typeof p.de === 'number' && p.de > p.por; }
+  function emOferta(p) { return temPreco(p) && (p.oferta === true || temDe(p)); }
+  function desconto(p) { return temDe(p) ? Math.round((1 - p.por / p.de) * 100) : 0; }
   /* sem a lista da peça, valem os tamanhos de L.tamanhos. Com a lista, valem os que ela traz, na ordem de L.tamanhos e depois L.tamanhosMais (XG, XXG, 42...). */
   function tamanhosDe(p) { if (!p.tamanhos) return TAM.slice(); var ordem = TAM.concat(L.tamanhosMais || []); function pos(t) { var i = ordem.indexOf(t); return i < 0 ? 999 : i; } return Object.keys(p.tamanhos).sort(function (a, b) { return pos(a) - pos(b); }); }
   function temTamanho(p, t) { return !p.tamanhos || !!p.tamanhos[t]; }
@@ -423,9 +425,9 @@
     $('p-codigo').hidden = !p.codigo; $('p-codigo').textContent = p.codigo ? 'Código ' + p.codigo : '';
     var pr = $('p-preco'); pr.textContent = ''; pr.hidden = !temPreco(p);
     if (temPreco(p)) {
-      if (emOferta(p)) { var de = document.createElement('s'), so = document.createElement('span'); so.className = 'so-leitor'; so.textContent = 'De '; de.textContent = real(p.de); pr.appendChild(so); pr.appendChild(de); var por0 = document.createElement('span'); por0.className = 'so-leitor'; por0.textContent = ' por '; pr.appendChild(por0); }
+      if (temDe(p)) { var de = document.createElement('s'), so = document.createElement('span'); so.className = 'so-leitor'; so.textContent = 'De '; de.textContent = real(p.de); pr.appendChild(so); pr.appendChild(de); var por0 = document.createElement('span'); por0.className = 'so-leitor'; por0.textContent = ' por '; pr.appendChild(por0); }
       var por = document.createElement('b'); por.textContent = real(p.por); pr.appendChild(por);
-      if (emOferta(p)) { var eco = document.createElement('em'); eco.textContent = desconto(p) + '% a menos'; pr.appendChild(eco); }
+      if (temDe(p)) { var eco = document.createElement('em'); eco.textContent = desconto(p) + '% a menos'; pr.appendChild(eco); } else if (emOferta(p)) { var pro = document.createElement('em'); pro.textContent = 'Promoção'; pr.appendChild(pro); }
     }
     pintarTamanhos(p); ligarWhatsPeca(p);
     $('p-whats').setAttribute('aria-label', 'Perguntar sobre ' + p.legenda + ' no WhatsApp da ' + nome);
@@ -449,7 +451,7 @@
       b.addEventListener('click', function () { p.escolha = p.escolha === t ? '' : t; pintarTamanhos(p); ligarWhatsPeca(p); if (gostei.indexOf(p) >= 0) sacola(); });
       cx.appendChild(b);
     });
-    $('p-tam-nota').textContent = fim ? 'Esgotado em todos os tamanhos. Pergunte à loja quando volta.' : p.tamanhos ? (p.escolha ? 'Tamanho ' + p.escolha + ' disponível.' : algumRiscado ? 'Riscado é tamanho esgotado.' : ts.length === 1 ? 'Disponível só neste tamanho.' : 'Estes são os tamanhos disponíveis. Toque em um para pedir.') : 'A loja confirma na conversa se tem o seu tamanho.';
+    $('p-tam-nota').textContent = fim ? 'Esgotado em todos os tamanhos. Pergunte à loja quando volta.' : p.tamanhos ? (p.escolha ? 'Tamanho ' + p.escolha + ' disponível.' : algumRiscado ? 'Riscado é tamanho esgotado.' : ts.length === 1 ? (ts[0] === 'Único' ? 'Peça de tamanho único.' : 'Disponível só neste tamanho.') : 'Estes são os tamanhos disponíveis. Toque em um para pedir.') : 'A loja confirma na conversa se tem o seu tamanho.';
   }
   function ligarWhatsPeca(p) {
     $('p-whats').href = 'https://wa.me/' + L.whatsapp + '?text=' + encodeURIComponent((L.mensagemPeca || '') + textoPeca(p) + '.');
@@ -542,12 +544,12 @@
       pe.className = 'peca-pe'; n.textContent = p.legenda; t.textContent = (nomeMarca[p.marca] ? nomeMarca[p.marca] + ' / ' : '') + (nomeTipo[p.tipo] || ''); pe.appendChild(n); pe.appendChild(t);
       if (temPreco(p)) {
         var pc = document.createElement('span'); pc.className = 'peca-preco';
-        if (emOferta(p)) { var ds = document.createElement('s'); ds.textContent = real(p.de); pc.appendChild(ds); }
+        if (temDe(p)) { var ds = document.createElement('s'); ds.textContent = real(p.de); pc.appendChild(ds); }
         var pb = document.createElement('strong'); pb.textContent = real(p.por); pc.appendChild(pb); pe.appendChild(pc);
       }
-      var selo = esgotada(p) ? 'Esgotado' : emOferta(p) ? '-' + desconto(p) + '%' : '';
+      var selo = esgotada(p) ? 'Esgotado' : temDe(p) ? '-' + desconto(p) + '%' : emOferta(p) ? 'Promoção' : '';
       if (selo) { var sl = document.createElement('span'); sl.className = 'peca-selo' + (esgotada(p) ? ' fim' : ''); sl.textContent = selo; q.appendChild(sl); }
-      b.setAttribute('aria-label', p.legenda + (temPreco(p) ? (emOferta(p) ? ', de ' + real(p.de) + ' por ' + real(p.por) : ', ' + real(p.por)) : '') + (esgotada(p) ? ', esgotado' : '') + '. Ver de perto.');
+      b.setAttribute('aria-label', p.legenda + (temPreco(p) ? (temDe(p) ? ', de ' + real(p.de) + ' por ' + real(p.por) : (emOferta(p) ? ', em promoção por ' : ', ') + real(p.por)) : '') + (esgotada(p) ? ', esgotado' : '') + '. Ver de perto.');
       b.appendChild(q); b.appendChild(pe); b.addEventListener('click', function () { verPeca(p); });
       g.type = 'button'; g.className = 'gosto'; g.peca = p; g.innerHTML = CORACAO; g.setAttribute('aria-label', 'Guardar ' + p.legenda + ' na minha lista'); g.setAttribute('aria-pressed', gostei.indexOf(p) >= 0 ? 'true' : 'false');
       g.addEventListener('click', function () { alternar(p); });
@@ -663,7 +665,7 @@
     ['inicio', 'catalogo', 'marca', 'ofertas'].forEach(function (n) { if (n === aba) $('aba-' + n).setAttribute('aria-current', 'page'); else $('aba-' + n).removeAttribute('aria-current'); });
     moverPilula();
     if (qual === 'catalogo') {
-      $('cat-apoio').textContent = ofertas ? 'Peças com preço reduzido. O valor riscado é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
+      $('cat-apoio').textContent = ofertas ? 'Peças em promoção. Quando aparece um valor riscado, ele é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
       if (!pintado || mudouModo) { pintado = true; pintarCatalogo(); }
     }
     scrollTo(0, 0); sacola(); ligarSeda(qual === 'catalogo');

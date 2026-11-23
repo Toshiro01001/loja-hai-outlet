@@ -56,7 +56,7 @@ window.LOJA = {
      Para uma peça entrar em Fitness, acrescente grupo: 'x' nela, por exemplo: { arquivo: '...', legenda: '...', tipo: 'c', grupo: 'x' } */
   grupos: [['f', 'Feminino'], ['m', 'Masculino'], ['x', 'Fitness'], ['a', 'Acessórios']],
   /* tipos de peça: código, nome e o grupo a que pertencem */
-  tipos: [['v', 'Vestidos', 'f'], ['c', 'Conjuntos', 'f'], ['b', 'Blusas', 'f'], ['m', 'Camisetas e regatas', 'm'], ['p', 'Polos', 'm'], ['s', 'Bermudas e shorts', 'm'], ['a', 'Acessórios', 'a']],
+  tipos: [['v', 'Vestidos', 'f'], ['c', 'Conjuntos', 'f'], ['b', 'Blusas', 'f'], ['sa', 'Saias', 'f'], ['m', 'Camisetas e regatas', 'm'], ['p', 'Polos', 'm'], ['s', 'Bermudas e shorts', 'm'], ['a', 'Acessórios', 'a']],
   /* marcas que a loja vende: código e nome. Uma marca sem nenhuma peça não é mostrada. */
   /* o terceiro item, quando existe, é o nome do catálogo da marca: aparece no botão de filtro e no início */
   marcas: [['hering', 'Hering', 'Catálogo Hering']],
@@ -65,12 +65,13 @@ window.LOJA = {
   /* tamanhos que a pessoa pode escolher ao abrir uma peça, na ordem em que aparecem */
   tamanhos: ['PP', 'P', 'M', 'G', 'GG'],
   /* tamanhos a mais, que só aparecem nas peças que os trazem na própria lista (ordem em que são mostrados) */
-  tamanhosMais: ['XG', 'XXG', '42', '44', '46'],
+  tamanhosMais: ['XG', 'XXG', 'G1', 'G2', 'G3', 'Único', '38', '42', '44', '46'],
   /* O que cada peça pode ter além da foto, do nome e do tipo. Tudo é opcional e só aparece quando a loja informar:
        codigo: 'H1234'                      código da peça na loja
        marca: 'hering'                      um dos códigos da lista "marcas"
        de: 99.9, por: 69.9                  valor normal (aparece riscado) e valor de venda; com os dois, a peça entra na tela Ofertas
        tamanhos: { P: 1, M: 0, G: 1 }       1 = disponível, 0 = esgotado; tamanho que não está na lista não é oferecido
+       oferta: true                         põe a peça na tela Ofertas mesmo sem valor riscado (promoção que só tem o valor de venda)
      Exemplo: { arquivo: 'fotos/c-23.webp', legenda: 'Camiseta azul', tipo: 'm', marca: 'hering', codigo: 'H1234', de: 99.9, por: 69.9, tamanhos: { P: 1, M: 0, G: 1 } }
      Os valores são informados pela loja e são responsabilidade dela. */
   mensagemPeca: 'Olá! Vim pelo cartão da loja e gostei desta peça do catálogo: ',
@@ -147,6 +148,42 @@ window.LOJA = {
     { arquivo: 'fotos/h-22.webp', legenda: 'Camiseta laranja', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { XG: 1 } },
     { arquivo: 'fotos/h-23.webp', legenda: 'Polo preta com frisos', tipo: 'p', marca: 'hering', por: 119.99, tamanhos: { M: 1 } },
     { arquivo: 'fotos/h-24.webp', legenda: 'Camiseta verde-oliva', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1, XG: 1 } },
-    { arquivo: 'fotos/h-25.webp', legenda: 'Camiseta verde-oliva gola V', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1 } }
+    { arquivo: 'fotos/h-25.webp', legenda: 'Camiseta verde-oliva gola V', tipo: 'm', marca: 'hering', por: 69.99, tamanhos: { M: 1 } },
+    /* Catálogo de Saias: preço e tamanhos do catálogo em PDF da loja. Fotos recortadas do pescoço para baixo, sem o rosto. "Único" é tamanho único. */
+    { arquivo: 'fotos/s-01.webp', legenda: 'Saia envelope preta', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-02.webp', legenda: 'Saia envelope vermelha', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-03.webp', legenda: 'Saia longa branca', tipo: 'sa', por: 169.99, tamanhos: { M: 1, G: 1 } },
+    { arquivo: 'fotos/s-04.webp', legenda: 'Saia laranja em camadas', tipo: 'sa', por: 69.99, tamanhos: { GG: 1 } },
+    { arquivo: 'fotos/s-05.webp', legenda: 'Saia lápis preta', tipo: 'sa', marca: 'hering', por: 139.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/s-06.webp', legenda: 'Saia envelope vermelha com folhagem', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-07.webp', legenda: 'Saia laranja florida (veste do M ao G)', tipo: 'sa', por: 25, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-08.webp', legenda: 'Saia envelope de onça', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-09.webp', legenda: 'Saia envelope de cerejas', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-10.webp', legenda: 'Saia azul estampada', tipo: 'sa', por: 49.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/s-11.webp', legenda: 'Saia de crochê cinza', tipo: 'sa', por: 129.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/s-12.webp', legenda: 'Saia vermelha drapeada', tipo: 'sa', por: 35, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/s-13.webp', legenda: 'Saia envelope amarela', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-14.webp', legenda: 'Saia cinza de pregas', tipo: 'sa', por: 159.99, tamanhos: { GG: 1 } },
+    { arquivo: 'fotos/s-15.webp', legenda: 'Saia verde com cinto', tipo: 'sa', marca: 'hering', por: 129.99, tamanhos: { '38': 1 } },
+    { arquivo: 'fotos/s-16.webp', legenda: 'Saia envelope verde de poá', tipo: 'sa', por: 98, tamanhos: { 'Único': 1 } },
+    { arquivo: 'fotos/s-17.webp', legenda: 'Saia evasê social (bege no M, branca no G)', tipo: 'sa', por: 68, tamanhos: { M: 1, G: 1 } },
+    { arquivo: 'fotos/s-18.webp', legenda: 'Saia lápis off-white', tipo: 'sa', marca: 'hering', por: 139.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/s-19.webp', legenda: 'Saia preta com botão', tipo: 'sa', por: 139.99, tamanhos: { M: 1 } },
+    /* Vestidos em promoção (catálogo "Promoção Black" da loja): oferta: true põe a peça na tela Ofertas. Só o Blessed traz valor normal (de). */
+    { arquivo: 'fotos/v-01.webp', legenda: 'Vestido ciganinha floral (branco, azul-marinho ou preto)', tipo: 'v', oferta: true, por: 59.99, tamanhos: { P: 1, M: 1, G: 1 } },
+    { arquivo: 'fotos/v-02.webp', legenda: 'Vestido floral plus size azul', tipo: 'v', oferta: true, por: 35, tamanhos: { GG: 1, G1: 1, G2: 1 } },
+    { arquivo: 'fotos/v-03.webp', legenda: 'Vestido floral plus size coral', tipo: 'v', oferta: true, por: 35, tamanhos: { GG: 1, G1: 1, G2: 1 } },
+    { arquivo: 'fotos/v-04.webp', legenda: 'Vestido viscose com renda (azul, vinho, verde ou preto)', tipo: 'v', oferta: true, por: 68, tamanhos: { GG: 1, G1: 1, G2: 1, G3: 1 } },
+    { arquivo: 'fotos/v-05.webp', legenda: 'Vestido de malha dupla azul', tipo: 'v', oferta: true, por: 49.99, tamanhos: { M: 1 } },
+    { arquivo: 'fotos/v-06.webp', legenda: 'Vestido malha fria floral preto', tipo: 'v', oferta: true, por: 49.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-07.webp', legenda: 'Vestido malha fria folhagem azul', tipo: 'v', oferta: true, por: 49.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-08.webp', legenda: 'Vestido Blessed verde florido', tipo: 'v', oferta: true, de: 189.99, por: 89.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-09.webp', legenda: 'Vestido viscose soltinho de tucanos', tipo: 'v', oferta: true, por: 59.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-10.webp', legenda: 'Vestido viscose soltinho azul geométrico', tipo: 'v', oferta: true, por: 59.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-11.webp', legenda: 'Vestido viscose soltinho vermelho', tipo: 'v', oferta: true, por: 59.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-12.webp', legenda: 'Vestido malha fria floral geométrico', tipo: 'v', oferta: true, por: 49.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-13.webp', legenda: 'Vestido malha fria de arabescos', tipo: 'v', oferta: true, por: 49.99, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-14.webp', legenda: 'Vestido longo floral azul-claro', tipo: 'v', oferta: true, por: 75, tamanhos: { G: 1 } },
+    { arquivo: 'fotos/v-15.webp', legenda: 'Vestido longo floral amarelo', tipo: 'v', oferta: true, por: 75, tamanhos: { G: 1 } }
   ]
 };

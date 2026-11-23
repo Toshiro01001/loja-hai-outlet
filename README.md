@@ -43,7 +43,7 @@ A página não tem cadastro, não usa cookies, não conta visitas e não guarda 
 ## Para trocar uma peça do catálogo
 
 1. Coloque a foto em `fotos/`, em WebP, na proporção 4 por 5.
-2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `m` camisetas e regatas masculinas, `p` polos, `s` bermudas e shorts). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.
+2. Acrescente uma linha na lista `catalogo` de `dados.js`, com o arquivo, o nome e o tipo (`v` vestidos, `c` conjuntos, `b` blusas, `sa` saias, `m` camisetas e regatas masculinas, `p` polos, `s` bermudas e shorts). Para a peça aparecer em Fitness, acrescente `grupo: 'x'` nela.
 
 ## Marcas, ofertas, preço e tamanho
 
@@ -58,6 +58,7 @@ O menu tem quatro telas: **Início**, **Catálogo**, **Catálogo Hering** e **Of
 | `tamanhosMais` | Tamanhos a mais (XG, XXG, 42, 44, 46), mostrados só nas peças que os trazem em `tamanhos` |
 | `codigo` na peça | Código na ficha e na mensagem do WhatsApp |
 | `de` e `por` na peça | Valor normal riscado e valor de venda; a peça entra em **Ofertas**, da maior economia para a menor |
+| `oferta: true` na peça | A peça entra em **Ofertas** mesmo sem valor riscado, com o selo "Promoção" |
 | `tamanhos` na peça (`{ P: 1, M: 0 }`) | Botões de tamanho; `0` aparece riscado, como esgotado |
 | peça com `tipo: 'a'` | Grupo **Acessórios** no catálogo |
 
@@ -72,3 +73,7 @@ No Catálogo Hering, as peças se dividem em Camisetas e regatas, Polos e Bermud
 ## Teste
 
 Com a pasta servida em `http://localhost:8311/` (`python3 -m http.server 8311`), rode `node tests/catalogo.cjs`. Ele confere o catálogo no computador, no iPhone 13, em 320 px e com "reduzir movimento".
+
+## Saias e vestidos em promoção
+
+As 19 saias do catálogo em PDF da loja estão no **Catálogo**, em Feminino, no tipo Saias (`fotos/s-01.webp` a `s-19.webp`); as três da Hering aparecem também no Catálogo Hering. Os 15 vestidos do catálogo de promoção estão em **Ofertas** (`fotos/v-01.webp` a `v-15.webp`, com `oferta: true`) e continuam aparecendo no Catálogo geral. "Único" é tamanho único; G1, G2 e G3 são os tamanhos plus size.

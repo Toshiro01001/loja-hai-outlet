@@ -28,7 +28,7 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     ok(await pg.locator('#campanha').isVisible(), 'bloco da Black Friday no início');
     ok((await pg.locator('#t-campanha').textContent()) === 'Black Friday na HAI OUTLET', 'título do bloco da campanha');
     const apoioC = await pg.locator('#campanha-apoio').textContent();
-    ok(apoioC.includes('82 peças') && apoioC.includes('R$ 25,00'), 'bloco da campanha com quantidade e menor valor (veio ' + apoioC + ')');
+    ok(apoioC.includes('120 peças') && apoioC.includes('R$ 25,00'), 'bloco da campanha com quantidade e menor valor (veio ' + apoioC + ')');
     ok(!(await pg.evaluate(() => { const b = document.getElementById('b-campanha'), c = b.closest('.marca-cartao').getBoundingClientRect(), r = b.getBoundingClientRect(); return r.right > c.right + 1 || b.scrollWidth > b.clientWidth + 1; })), 'botão da campanha cabe no cartão');
     await pg.locator('#b-campanha').click(); await pg.waitForTimeout(1300);
     ok((await pg.evaluate(() => location.hash)) === '#ofertas' && (await pg.locator('#t-cat').textContent()) === 'Ofertas', 'botão da campanha abre Ofertas');
@@ -70,16 +70,16 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     ok((await pg.locator('#t-cat').textContent()) === 'Catálogo', 'título do catálogo geral');
     await pg.locator('#aba-ofertas').click(); await pg.waitForTimeout(1300);
     ok((await pg.locator('#t-cat').textContent()) === 'Ofertas', 'tela Ofertas');
-    /* 5. Ofertas: 15 vestidos em promoção mais as 82 peças da Black Friday; a de valor riscado vem primeiro, depois as da campanha; saias ficam no Catálogo */
-    ok((await pg.locator('#cat-conta').textContent()).startsWith('97 ofertas'), 'Ofertas com 97 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
+    /* 5. Ofertas: 15 vestidos em promoção mais as 120 peças da Black Friday; a de valor riscado vem primeiro, depois as da campanha; saias ficam no Catálogo */
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('135 ofertas'), 'Ofertas com 135 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
     const primeira = await pg.locator('#cat-grade button').first().getAttribute('aria-label');
     ok(primeira.includes('Blessed') && primeira.includes('de R$ 189,99 por R$ 89,99'), 'a peça com valor riscado vem primeiro (veio ' + primeira + ')');
     ok(!(await pg.locator('#cat-grade').textContent()).includes('NaN'), 'nenhum preço quebrado em Ofertas');
     ok((await pg.locator('#cat-grade').textContent()).includes('Promoção'), 'selo Promoção nas peças sem valor riscado');
     const segunda = await pg.locator('#cat-grade button.peca').nth(1).getAttribute('aria-label');
     ok(segunda.includes('na Black Friday por R$ '), 'depois da peça com valor riscado vêm as da Black Friday (veio ' + segunda + ')');
-    ok((await pg.locator('#cat-grade .peca-selo.camp').count()) === 82, '82 selos Black Friday em Ofertas (veio ' + (await pg.locator('#cat-grade .peca-selo.camp').count()) + ')');
-    ok((await pg.locator('#cat-apoio').textContent()).startsWith('Black Friday: 82 peças'), 'texto de apoio de Ofertas fala da campanha');
+    ok((await pg.locator('#cat-grade .peca-selo.camp').count()) === 120, '120 selos Black Friday em Ofertas (veio ' + (await pg.locator('#cat-grade .peca-selo.camp').count()) + ')');
+    ok((await pg.locator('#cat-apoio').textContent()).startsWith('Black Friday: 120 peças'), 'texto de apoio de Ofertas fala da campanha');
     ok(!(await pg.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)), 'Ofertas sem rolagem para o lado');
     await pg.locator('#aba-catalogo').click(); await pg.waitForTimeout(1300);
     await pg.locator('#busca').fill('saia envelope preta'); await pg.waitForTimeout(700);

@@ -57,6 +57,8 @@ O menu tem quatro telas: **Início**, **Catálogo**, **Catálogo Hering** e **Of
 | terceiro item de `marcas` (por exemplo `['hering', 'Hering', 'Catálogo Hering']`) | Nome do catálogo da marca: aparece no botão de filtro e no bloco do início |
 | `tamanhosMais` | Tamanhos a mais (XG, XXG, 42, 44, 46), mostrados só nas peças que os trazem em `tamanhos` |
 | `codigo` na peça | Código na ficha e na mensagem do WhatsApp |
+| `campanhas` e `campanhaDestaque` (por exemplo `['bf', 'Black Friday', 'Black Friday na HAI OUTLET']`) | Bloco da campanha no início, com a quantidade de peças e o menor valor, e atalho para **Ofertas** |
+| `campanha: 'bf'` na peça | A peça entra em **Ofertas** com o selo preto **Black Friday**, também na ficha dela |
 | `de` e `por` na peça | Valor normal riscado e valor de venda; a peça entra em **Ofertas**, da maior economia para a menor |
 | `oferta: true` na peça | A peça entra em **Ofertas** mesmo sem valor riscado, com o selo "Promoção" |
 | `tamanhos` na peça (`{ P: 1, M: 0 }`) | Botões de tamanho; `0` aparece riscado, como esgotado |

@@ -24,11 +24,24 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     const ids = await pg.evaluate(() => window.LOJA.catalogo.map(p => p.id));
     ok(new Set(ids).size === ids.length, 'cada peça precisa de um endereço só dela');
     ok((await pg.locator('#b-marca-texto').textContent()) === 'Abrir o Catálogo Hering', 'botão do início');
+    /* 2b. Black Friday no início: bloco com os números tirados das peças, e o botão abre Ofertas */
+    ok(await pg.locator('#campanha').isVisible(), 'bloco da Black Friday no início');
+    ok((await pg.locator('#t-campanha').textContent()) === 'Black Friday na HAI OUTLET', 'título do bloco da campanha');
+    const apoioC = await pg.locator('#campanha-apoio').textContent();
+    ok(apoioC.includes('82 peças') && apoioC.includes('R$ 25,00'), 'bloco da campanha com quantidade e menor valor (veio ' + apoioC + ')');
+    ok(!(await pg.evaluate(() => { const b = document.getElementById('b-campanha'), c = b.closest('.marca-cartao').getBoundingClientRect(), r = b.getBoundingClientRect(); return r.right > c.right + 1 || b.scrollWidth > b.clientWidth + 1; })), 'botão da campanha cabe no cartão');
+    await pg.locator('#b-campanha').click(); await pg.waitForTimeout(1300);
+    ok((await pg.evaluate(() => location.hash)) === '#ofertas' && (await pg.locator('#t-cat').textContent()) === 'Ofertas', 'botão da campanha abre Ofertas');
+    await pg.goto(URL + '#peca-bf-39', { waitUntil: 'networkidle' }); await pg.reload({ waitUntil: 'networkidle' }); await pg.waitForTimeout(1500);
+    ok((await pg.locator('#p-tam button').allTextContents()).join() === '40' && (await pg.locator('#p-preco').textContent()).includes('Black Friday'), 'peça da campanha com tamanho 40 e selo na ficha');
+    await pg.goto(URL + '#peca-bf-66', { waitUntil: 'networkidle' }); await pg.reload({ waitUntil: 'networkidle' }); await pg.waitForTimeout(1500);
+    ok((await pg.locator('#p-tam button').allTextContents()).join() === 'GGG', 'tamanho GGG aparece');
+    await pg.goto(URL, { waitUntil: 'networkidle' }); await pg.reload({ waitUntil: 'networkidle' }); await fecharAviso(pg);
     await pg.locator('#b-marca').click(); await pg.waitForTimeout(1200);
-    ok((await pg.locator('#cat-conta').textContent()).startsWith('28 peças da Hering'), 'contagem do Catálogo Hering');
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('77 peças da Hering'), 'contagem do Catálogo Hering');
     const grupos = await pg.locator('#chips button:visible').allTextContents();
     ok((await pg.evaluate(() => location.hash)) === '#catalogo-hering', 'o botão do início abre #catalogo-hering');
-    ok(grupos.join('|') === 'Tudo28|Feminino3|Masculino25', 'com a marca escolhida, os grupos contam só as peças dela (veio ' + grupos.join('|') + ')');
+    ok(grupos.join('|') === 'Tudo77|Feminino52|Masculino25', 'com a marca escolhida, os grupos contam só as peças dela (veio ' + grupos.join('|') + ')');
     await pg.locator('#chips button', { hasText: 'Masculino' }).click(); await pg.waitForTimeout(700);
     const tipos = await pg.locator('#subchips button').allTextContents();
     ok(tipos.join('|') === 'Todos25|Camisetas e regatas13|Polos7|Bermudas e shorts5', 'tipos dentro do Masculino (veio ' + tipos.join('|') + ')');
@@ -51,18 +64,23 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     ok(pil, 'pílula verde embaixo da aba aberta');
     ok(!(await pg.evaluate(() => { const r = document.getElementById('barra').getBoundingClientRect(); return [...document.querySelectorAll('#barra a')].some(e => e.offsetWidth && (e.getBoundingClientRect().right > r.right + 1 || e.scrollWidth > e.clientWidth + 1)); })), 'abas cabem no menu');
     await pg.locator('#aba-catalogo').click(); await pg.waitForTimeout(1300);
-    ok((await pg.locator('#cat-conta').textContent()).startsWith('103 peças'), 'catálogo geral com as 103 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('223 peças'), 'catálogo geral com as 223 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
     ok(await pg.locator('#marcas').isVisible(), 'fileira de marcas de volta no catálogo geral');
-    ok((await pg.locator('#chips button:visible').allTextContents()).join('|').startsWith('Tudo103|Feminino'), 'grupos do catálogo geral');
+    ok((await pg.locator('#chips button:visible').allTextContents()).join('|').startsWith('Tudo223|Feminino'), 'grupos do catálogo geral');
     ok((await pg.locator('#t-cat').textContent()) === 'Catálogo', 'título do catálogo geral');
     await pg.locator('#aba-ofertas').click(); await pg.waitForTimeout(1300);
     ok((await pg.locator('#t-cat').textContent()) === 'Ofertas', 'tela Ofertas');
-    /* 5. Ofertas: os 15 vestidos em promoção, com o de valor riscado primeiro; saias ficam no Catálogo */
-    ok((await pg.locator('#cat-conta').textContent()).startsWith('15 ofertas'), 'Ofertas com 15 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
+    /* 5. Ofertas: 15 vestidos em promoção mais as 82 peças da Black Friday; a de valor riscado vem primeiro, depois as da campanha; saias ficam no Catálogo */
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('97 ofertas'), 'Ofertas com 97 peças (veio ' + (await pg.locator('#cat-conta').textContent()) + ')');
     const primeira = await pg.locator('#cat-grade button').first().getAttribute('aria-label');
     ok(primeira.includes('Blessed') && primeira.includes('de R$ 189,99 por R$ 89,99'), 'a peça com valor riscado vem primeiro (veio ' + primeira + ')');
     ok(!(await pg.locator('#cat-grade').textContent()).includes('NaN'), 'nenhum preço quebrado em Ofertas');
     ok((await pg.locator('#cat-grade').textContent()).includes('Promoção'), 'selo Promoção nas peças sem valor riscado');
+    const segunda = await pg.locator('#cat-grade button.peca').nth(1).getAttribute('aria-label');
+    ok(segunda.includes('na Black Friday por R$ '), 'depois da peça com valor riscado vêm as da Black Friday (veio ' + segunda + ')');
+    ok((await pg.locator('#cat-grade .peca-selo.camp').count()) === 82, '82 selos Black Friday em Ofertas (veio ' + (await pg.locator('#cat-grade .peca-selo.camp').count()) + ')');
+    ok((await pg.locator('#cat-apoio').textContent()).startsWith('Black Friday: 82 peças'), 'texto de apoio de Ofertas fala da campanha');
+    ok(!(await pg.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)), 'Ofertas sem rolagem para o lado');
     await pg.locator('#aba-catalogo').click(); await pg.waitForTimeout(1300);
     await pg.locator('#busca').fill('saia envelope preta'); await pg.waitForTimeout(700);
     await pg.locator('#cat-grade button', { hasText: 'Saia envelope preta' }).first().click(); await pg.waitForTimeout(900);
@@ -71,7 +89,7 @@ async function fecharAviso(pg) { await pg.waitForTimeout(4200); if (await pg.loc
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(600); await pg.locator('#busca').fill(''); await pg.waitForTimeout(500);
     await pg.locator('#aba-ofertas').click(); await pg.waitForTimeout(1300);
     await pg.locator('#aba-marca').click(); await pg.waitForTimeout(1300);
-    ok((await pg.locator('#cat-conta').textContent()).startsWith('28 peças da Hering'), 'volta ao Catálogo Hering pela aba');
+    ok((await pg.locator('#cat-conta').textContent()).startsWith('77 peças da Hering'), 'volta ao Catálogo Hering pela aba');
     await pg.goBack(); await pg.waitForTimeout(1300);
     ok((await pg.locator('#t-cat').textContent()) === 'Ofertas', 'botão de voltar do aparelho');
     await pg.locator('#aba-inicio').click(); await pg.waitForTimeout(1000);

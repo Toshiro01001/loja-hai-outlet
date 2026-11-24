@@ -641,6 +641,9 @@ body.com-folha { overscroll-behavior-y: none; }
 .peca-quadro { position: relative; }
 .peca-selo { position: absolute; left: 10px; top: 10px; z-index: 2; padding: 6px 10px; border-radius: 999px; background: var(--verde); color: var(--obs); font: 600 11px/1 var(--maquina); letter-spacing: .06em; }
 .peca-selo.fim { background: var(--obs); color: #fff; }
+/* selo de campanha (Black Friday): preto com letra verde, para não se confundir com o selo comum de promoção */
+.peca-selo.camp { background: #0b0d0b; color: var(--verde); box-shadow: 0 0 0 1px rgba(164, 207, 69, .55); }
+.p-preco em.camp { background: #0b0d0b; color: var(--verde); }
 .peca-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-top: 2px; font-size: 14.5px; }
 .peca-preco s { color: var(--cinza); font-size: 12.5px; }
 .peca-preco strong { font-weight: 600; }
@@ -663,6 +666,10 @@ body.com-folha { overscroll-behavior-y: none; }
 .marca-cartao h2 { margin: 6px 0 8px; color: #fff; }
 .marca-apoio { margin: 0; color: rgba(255, 255, 255, .72); max-width: 44ch; }
 .marca-cartao .acao { justify-self: start; }
+/* bloco da campanha no início: mais escuro que o da marca, com um fio verde, e o nome bem grande */
+.campanha .marca-cartao { background: #0b0d0b; box-shadow: inset 0 0 0 1px rgba(164, 207, 69, .5); }
+.campanha h2 { font-size: clamp(30px, 8.5vw, 54px); line-height: 1.02; }
+.campanha + .marca-bloco { padding-top: 14px; }
 @media (min-width: 760px) { .marca-cartao { grid-template-columns: 1fr auto; } .marca-cartao .acao { justify-self: end; } }
 @media (max-width: 380px) { .abas a { min-width: 0; padding: 0 9px; font-size: 13px; } }
 /* menu com quatro abas: no celular, "Catálogo Hering" ocupa duas linhas para caber sem apertar as outras */

@@ -352,8 +352,13 @@
   function temPreco(p) { return typeof p.por === 'number' && p.por > 0; }
   /* a peça entra em Ofertas de dois jeitos: com valor normal riscado (de) maior que o de venda, ou marcada pela loja com oferta: true (promoção sem valor riscado) */
   function temDe(p) { return temPreco(p) && typeof p.de === 'number' && p.de > p.por; }
-  function emOferta(p) { return temPreco(p) && (p.oferta === true || temDe(p)); }
+  /* campanha (por exemplo Black Friday): a peça marcada com campanha: 'codigo' entra em Ofertas e ganha o selo com o nome da campanha */
+  var nomeCamp = {}; (L.campanhas || []).forEach(function (c) { nomeCamp[c[0]] = c[1]; });
+  function campDe(p) { return temPreco(p) && p.campanha && nomeCamp[p.campanha] ? nomeCamp[p.campanha] : ''; }
+  function emOferta(p) { return temPreco(p) && (p.oferta === true || temDe(p) || !!campDe(p)); }
   function desconto(p) { return temDe(p) ? Math.round((1 - p.por / p.de) * 100) : 0; }
+  /* campanha em destaque: quantas peças tem e o menor valor, para o bloco do início e o texto de Ofertas */
+  var CD = (function () { var c = (L.campanhas || []).filter(function (x) { return x[0] === L.campanhaDestaque; })[0], pecas = c ? CAT.filter(function (p) { return p.campanha === c[0] && temPreco(p); }) : []; return { n: pecas.length, nome: c ? c[1] : '', titulo: c ? c[2] : '', min: pecas.reduce(function (m, p) { return Math.min(m, p.por); }, Infinity) }; })();
   /* sem a lista da peça, valem os tamanhos de L.tamanhos. Com a lista, valem os que ela traz, na ordem de L.tamanhos e depois L.tamanhosMais (XG, XXG, 42...). */
   function tamanhosDe(p) { if (!p.tamanhos) return TAM.slice(); var ordem = TAM.concat(L.tamanhosMais || []); function pos(t) { var i = ordem.indexOf(t); return i < 0 ? 999 : i; } return Object.keys(p.tamanhos).sort(function (a, b) { return pos(a) - pos(b); }); }
   function temTamanho(p, t) { return !p.tamanhos || !!p.tamanhos[t]; }
@@ -408,7 +413,8 @@
     var q = limpo(termo.trim());
     var achadas = CAT.filter(function (p) { return (!ofertas || emOferta(p)) && (grupo === '*' ? gostei.indexOf(p) >= 0 : (!marca || p.marca === marca) && (!grupo || grupoDe(p) === grupo) && (!filtro || p.tipo === filtro)) && (!q || limpo(p.legenda + ' ' + (nomeTipo[p.tipo] || '') + ' ' + (nomeGrupo[grupoDe(p)] || '') + ' ' + (nomeMarca[p.marca] || '') + ' ' + (p.codigo || '')).indexOf(q) >= 0); });
     /* na tela Ofertas, a maior economia vem primeiro */
-    if (ofertas) achadas.sort(function (a, b) { return desconto(b) - desconto(a); });
+    /* em Ofertas: primeiro quem tem valor riscado (maior economia), depois as peças da campanha, depois as outras promoções */
+    if (ofertas) achadas.sort(function (a, b) { return desconto(b) - desconto(a) || (campDe(b) ? 1 : 0) - (campDe(a) ? 1 : 0); });
     return achadas;
   }
   function marcarGosto() {
@@ -427,7 +433,7 @@
     if (temPreco(p)) {
       if (temDe(p)) { var de = document.createElement('s'), so = document.createElement('span'); so.className = 'so-leitor'; so.textContent = 'De '; de.textContent = real(p.de); pr.appendChild(so); pr.appendChild(de); var por0 = document.createElement('span'); por0.className = 'so-leitor'; por0.textContent = ' por '; pr.appendChild(por0); }
       var por = document.createElement('b'); por.textContent = real(p.por); pr.appendChild(por);
-      if (temDe(p)) { var eco = document.createElement('em'); eco.textContent = desconto(p) + '% a menos'; pr.appendChild(eco); } else if (emOferta(p)) { var pro = document.createElement('em'); pro.textContent = 'Promoção'; pr.appendChild(pro); }
+      if (temDe(p)) { var eco = document.createElement('em'); eco.textContent = desconto(p) + '% a menos'; pr.appendChild(eco); } else if (emOferta(p)) { var pro = document.createElement('em'); pro.textContent = campDe(p) || 'Promoção'; if (campDe(p)) pro.className = 'camp'; pr.appendChild(pro); }
     }
     pintarTamanhos(p); ligarWhatsPeca(p);
     $('p-whats').setAttribute('aria-label', 'Perguntar sobre ' + p.legenda + ' no WhatsApp da ' + nome);
@@ -547,9 +553,9 @@
         if (temDe(p)) { var ds = document.createElement('s'); ds.textContent = real(p.de); pc.appendChild(ds); }
         var pb = document.createElement('strong'); pb.textContent = real(p.por); pc.appendChild(pb); pe.appendChild(pc);
       }
-      var selo = esgotada(p) ? 'Esgotado' : temDe(p) ? '-' + desconto(p) + '%' : emOferta(p) ? 'Promoção' : '';
-      if (selo) { var sl = document.createElement('span'); sl.className = 'peca-selo' + (esgotada(p) ? ' fim' : ''); sl.textContent = selo; q.appendChild(sl); }
-      b.setAttribute('aria-label', p.legenda + (temPreco(p) ? (temDe(p) ? ', de ' + real(p.de) + ' por ' + real(p.por) : (emOferta(p) ? ', em promoção por ' : ', ') + real(p.por)) : '') + (esgotada(p) ? ', esgotado' : '') + '. Ver de perto.');
+      var selo = esgotada(p) ? 'Esgotado' : temDe(p) ? '-' + desconto(p) + '%' : campDe(p) ? campDe(p) : emOferta(p) ? 'Promoção' : '';
+      if (selo) { var sl = document.createElement('span'); sl.className = 'peca-selo' + (esgotada(p) ? ' fim' : campDe(p) && !temDe(p) ? ' camp' : ''); sl.textContent = selo; q.appendChild(sl); }
+      b.setAttribute('aria-label', p.legenda + (temPreco(p) ? (temDe(p) ? ', de ' + real(p.de) + ' por ' + real(p.por) : (campDe(p) ? ', na ' + campDe(p) + ' por ' : emOferta(p) ? ', em promoção por ' : ', ') + real(p.por)) : '') + (esgotada(p) ? ', esgotado' : '') + '. Ver de perto.');
       b.appendChild(q); b.appendChild(pe); b.addEventListener('click', function () { verPeca(p); });
       g.type = 'button'; g.className = 'gosto'; g.peca = p; g.innerHTML = CORACAO; g.setAttribute('aria-label', 'Guardar ' + p.legenda + ' na minha lista'); g.setAttribute('aria-pressed', gostei.indexOf(p) >= 0 ? 'true' : 'false');
       g.addEventListener('click', function () { alternar(p); });
@@ -665,7 +671,7 @@
     ['inicio', 'catalogo', 'marca', 'ofertas'].forEach(function (n) { if (n === aba) $('aba-' + n).setAttribute('aria-current', 'page'); else $('aba-' + n).removeAttribute('aria-current'); });
     moverPilula();
     if (qual === 'catalogo') {
-      $('cat-apoio').textContent = ofertas ? 'Peças em promoção. Quando aparece um valor riscado, ele é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
+      $('cat-apoio').textContent = ofertas ? (CD.n ? CD.nome + ': ' + CD.n + (CD.n === 1 ? ' peça' : ' peças') + ' com o selo da campanha, a partir de ' + real(CD.min) + '. ' : 'Peças em promoção. ') + 'Quando aparece um valor riscado, ele é o valor normal da loja.' : 'Toque em uma peça para ver de perto, escolher o tamanho e pedir pelo WhatsApp.';
       if (!pintado || mudouModo) { pintado = true; pintarCatalogo(); }
     }
     scrollTo(0, 0); sacola(); ligarSeda(qual === 'catalogo');
@@ -695,6 +701,13 @@
   [].forEach.call(document.querySelectorAll('a[href="#inicio"], a[href="#catalogo"], a[href="#ofertas"], #aba-marca, #b-marca'), function (a) { a.addEventListener('click', function () { if (location.hash === a.getAttribute('href')) vista(false); }); });
   /* grupo do WhatsApp: o botão só aparece com um link de convite válido em dados.js */
   if (/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+/.test(L.grupoWhats || '')) { var bg = $('b-grupo'); bg.href = L.grupoWhats; bg.target = '_blank'; bg.hidden = false; bg.setAttribute('aria-label', 'Entrar no grupo do WhatsApp da ' + nome); }
+  /* campanha em destaque no início: aparece só quando a campanha tem peças; os números saem das próprias peças */
+  if (CD.n) {
+    $('campanha').hidden = false;
+    $('t-campanha').textContent = CD.titulo || (CD.nome + ' na ' + nome);
+    $('campanha-apoio').textContent = CD.n + (CD.n === 1 ? ' peça com preço' : ' peças com preço') + ' de ' + CD.nome + ', a partir de ' + real(CD.min) + '. Elas estão na tela Ofertas, com o selo ' + CD.nome + '.';
+    $('b-campanha-texto').textContent = 'Ver as ofertas da ' + CD.nome;
+  }
   /* marca em destaque no início: aparece só quando há peças dela no catálogo, e o botão abre o catálogo dela */
   (function () {
     var m = L.marcaDestaque, n = m && nomeMarca[m] ? CAT.filter(function (p) { return p.marca === m; }).length : 0;
